@@ -75,13 +75,14 @@ jobs:
         shell: bash
 
       - name: Configure xmake and install dependencies
-        run: xmake config -vD --plat=${{ matrix.runner.name }} --arch=${{ matrix.runner.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} ${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
-        shell: bash
+        #run: xmake config -vD --plat=${{ matrix.runner.name }} --arch=${{ matrix.runner.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} ${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
+        run: xmake config -vD --arch=${{ matrix.runner.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} ${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
+        #shell: bash
         working-directory: Cpp
 
       - name: Build all targets
         run: xmake build -vD -a
-        shell: bash
+        #shell: bash
         working-directory: Cpp
 
       ## We can't do --group=TESTS because every test has its own output
@@ -92,7 +93,7 @@ jobs:
 
       - name: Install
         run: xmake install -vDo _dest/ --group=LIBS
-        shell: bash
+        #shell: bash
         working-directory: Cpp
 
       - name: Prepare Cpp artifacts for release
