@@ -88,6 +88,7 @@ target( "ffmpeg-helper" )
         else
             add_frameworks( "AudioToolbox", { public = true } )
         end
+        add_links( "avcodec", "avformat", { public = true } )  -- for github actions
     elseif is_plat( "linux" ) then
         add_syslinks( "dl", "pthread", { public = true } )
     elseif is_plat( "android" ) then
