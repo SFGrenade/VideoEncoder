@@ -8,24 +8,24 @@ namespace VideoEncoder;
 public static class NativeWrapper
 {
     [DllImport("VideoEncoderNative_Linux", EntryPoint = "Init", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true)]
-    private static extern bool Native_Linux_Init(string dir, int width, int height);
-    private static bool Linux_Init_Wrap(string dir, int width, int height) => Native_Linux_Init(dir, width, height);
+    private static extern bool Native_Linux_Init(string dir);
+    private static bool Linux_Init_Wrap(string dir) => Native_Linux_Init(dir);
     [DllImport("VideoEncoderNative_MacOS", EntryPoint = "Init", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true)]
-    private static extern bool Native_MacOS_Init(string dir, int width, int height);
-    private static bool MacOS_Init_Wrap(string dir, int width, int height) => Native_MacOS_Init(dir, width, height);
+    private static extern bool Native_MacOS_Init(string dir);
+    private static bool MacOS_Init_Wrap(string dir) => Native_MacOS_Init(dir);
     [DllImport("VideoEncoderNative_Windows", EntryPoint = "Init", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true)]
-    private static extern bool Native_Windows_Init(string dir, int width, int height);
-    private static bool Windows_Init_Wrap(string dir, int width, int height) => Native_Windows_Init(dir, width, height);
-    internal static bool InitLibrary(string dir, int width, int height)
+    private static extern bool Native_Windows_Init(string dir);
+    private static bool Windows_Init_Wrap(string dir) => Native_Windows_Init(dir);
+    internal static bool InitLibrary(string dir)
     {
         switch (SystemInfo.operatingSystemFamily)
         {
             case OperatingSystemFamily.Linux:
-                return Linux_Init_Wrap(dir, width, height);
+                return Linux_Init_Wrap(dir);
             case OperatingSystemFamily.MacOSX:
-                return MacOS_Init_Wrap(dir, width, height);
+                return MacOS_Init_Wrap(dir);
             case OperatingSystemFamily.Windows:
-                return Windows_Init_Wrap(dir, width, height);
+                return Windows_Init_Wrap(dir);
             default:
                 return false;
         };
@@ -56,24 +56,24 @@ public static class NativeWrapper
     }
 
     [DllImport("VideoEncoderNative_Linux", EntryPoint = "StartNewSequence", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true)]
-    private static extern bool Native_Linux_StartNewSequence();
-    private static bool Linux_StartNewSequence_Wrap() => Native_Linux_StartNewSequence(); 
+    private static extern bool Native_Linux_StartNewSequence(int width, int height);
+    private static bool Linux_StartNewSequence_Wrap(int width, int height) => Native_Linux_StartNewSequence(width, height); 
     [DllImport("VideoEncoderNative_MacOS", EntryPoint = "StartNewSequence", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true)]
-    private static extern bool Native_MacOS_StartNewSequence();
-    private static bool MacOS_StartNewSequence_Wrap() => Native_MacOS_StartNewSequence();
+    private static extern bool Native_MacOS_StartNewSequence(int width, int height);
+    private static bool MacOS_StartNewSequence_Wrap(int width, int height) => Native_MacOS_StartNewSequence(width, height);
     [DllImport("VideoEncoderNative_Windows", EntryPoint = "StartNewSequence", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true)]
-    private static extern bool Native_Windows_StartNewSequence();
-    private static bool Windows_StartNewSequence_Wrap() => Native_Windows_StartNewSequence();
-    internal static bool StartNewSequence()
+    private static extern bool Native_Windows_StartNewSequence(int width, int height);
+    private static bool Windows_StartNewSequence_Wrap(int width, int height) => Native_Windows_StartNewSequence(width, height);
+    internal static bool StartNewSequence(int width, int height)
     {
         switch (SystemInfo.operatingSystemFamily)
         {
             case OperatingSystemFamily.Linux:
-                return Linux_StartNewSequence_Wrap();
+                return Linux_StartNewSequence_Wrap(width, height);
             case OperatingSystemFamily.MacOSX:
-                return MacOS_StartNewSequence_Wrap();
+                return MacOS_StartNewSequence_Wrap(width, height);
             case OperatingSystemFamily.Windows:
-                return Windows_StartNewSequence_Wrap();
+                return Windows_StartNewSequence_Wrap(width, height);
             default:
                 return false;
         };
