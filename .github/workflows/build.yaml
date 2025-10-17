@@ -15,7 +15,7 @@ jobs:
       matrix:
         runner:
           - { name: linux, os: ubuntu-latest, arch: x86_64 }
-          - { name: macos, os: macos-13, arch: x86_64 }
+          - { name: macosx, os: macos-13, arch: x86_64 }
           - { name: windows, os: windows-latest, arch: x64 }
         kind: [shared]
         mode: [releasedbg]
@@ -75,7 +75,7 @@ jobs:
         shell: bash
 
       - name: Configure xmake and install dependencies
-        run: xmake config -vD --arch=${{ matrix.runner.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} ${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
+        run: xmake config -vD --plat=${{ matrix.runner.name }} --arch=${{ matrix.runner.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} ${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
         shell: bash
         working-directory: Cpp
 
