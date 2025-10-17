@@ -15,10 +15,10 @@ jobs:
       matrix:
         runner:
           - { name: linux, os: ubuntu-latest, arch: x86_64 }
-          - { name: macosx, os: macos-13, arch: x86_64 }
+          - { name: macos, os: macos-13, arch: x86_64 }
           - { name: windows, os: windows-latest, arch: x64 }
         kind: [shared]
-        mode: [releasedbg]
+        mode: [release]
 
     runs-on: ${{ matrix.runner.os }}
 
