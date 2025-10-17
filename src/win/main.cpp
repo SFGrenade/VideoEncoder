@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "_ffmpeg.h"
 #include "common.h"
 
 bool Init( char const* base_dir ) {

@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "_ffmpeg.h"
+
 namespace VEN {
 
 InputSequenceWrapper::InputSequenceWrapper( AVCodecID codec ) {
