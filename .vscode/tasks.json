@@ -1,0 +1,118 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Clean global cache",
+            "type": "shell",
+            "command": "rm -r ${workspaceFolder}/.cache/global/*",
+        },
+        {
+            "label": "Clean local cache",
+            "type": "shell",
+            "command": "rm -r ${workspaceFolder}/.cache/local/*",
+        },
+        {
+            "label": "Clean cache",
+            "dependsOn": [
+                "Clean global cache",
+                "Clean local cache"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build for linux",
+            "type": "shell",
+            "command": "D:\\zig\\zig.exe c++ -o libVideoEncoderNative_Linux.so -target x86_64-linux -fno-debug-macro -g0 -fno-standalone-debug -dynamic -shared -pthread -I D:/linux-libraries/usr/include/libmount -I D:/linux-libraries/usr/include/blkid -I D:/linux-libraries/usr/include/glib-2.0 -I D:/linux-libraries/usr/lib/x86_64-linux-gnu/glib-2.0/include -L D:/linux-libraries/bin -l gio-2.0 -l gobject-2.0 -l glib-2.0 -std=c++20 -stdlib=libc++ -Wall -Wextra -Xlinker -s -Xlinker -S ../src/common.cpp ../src/main.cpp ../src/lin/main.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/out",
+                "env": {
+                    "ZIG_GLOBAL_CACHE_DIR": "${workspaceFolder}/.cache/global",
+                    "ZIG_LOCAL_CACHE_DIR": "${workspaceFolder}/.cache/local",
+                }
+            },
+        },
+        {
+            "label": "Build for mac os",
+            "type": "shell",
+            "command": "D:\\zig\\zig.exe c++ -o libVideoEncoderNative_MacOS.dylib -target x86_64-macos -fno-debug-macro -g0 -fno-standalone-debug -dynamic -shared -std=c++20 -stdlib=libc++ -Wall -Wextra -Xlinker -s -Xlinker -S ../src/common.cpp ../src/main.cpp ../src/mac/main.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/out",
+                "env": {
+                    "ZIG_GLOBAL_CACHE_DIR": "${workspaceFolder}/.cache/global",
+                    "ZIG_LOCAL_CACHE_DIR": "${workspaceFolder}/.cache/local",
+                }
+            },
+        },
+        {
+            "label": "Build for windows",
+            "type": "shell",
+            "command": "D:\\zig\\zig.exe c++ -o VideoEncoderNative_Windows.dll -target x86_64-windows -fno-debug-macro -g0 -fno-standalone-debug -dynamic -shared -l UxTheme -l Dwmapi -l User32 -std=c++20 -stdlib=libc++ -Wall -Wextra -Xlinker -s -Xlinker -S ../src/common.cpp ../src/main.cpp ../src/win/main.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/out",
+                "env": {
+                    "ZIG_GLOBAL_CACHE_DIR": "${workspaceFolder}/.cache/global",
+                    "ZIG_LOCAL_CACHE_DIR": "${workspaceFolder}/.cache/local",
+                }
+            },
+        },
+        {
+            "label": "Full Build C++",
+            "dependsOn": [
+                "Build for linux",
+                "Build for mac os",
+                "Build for windows"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": []
+        },
+        {
+            "label": "Print defines for linux",
+            "type": "shell",
+            "command": "zig c++ -o defines_linux.txt -target x86_64-linux -fno-debug-macro -g0 -fno-standalone-debug -dynamic -shared -pthread -I D:/linux-libraries/usr/include/libmount -I D:/linux-libraries/usr/include/blkid -I D:/linux-libraries/usr/include/glib-2.0 -I D:/linux-libraries/usr/lib/x86_64-linux-gnu/glib-2.0/include -L D:/linux-libraries/bin -l gio-2.0 -l gobject-2.0 -l glib-2.0 -std=c++20 -stdlib=libc++ -Wall -Wextra -dM -E ../src/common.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/out",
+                "env": {
+                    "ZIG_GLOBAL_CACHE_DIR": "${workspaceFolder}/.cache/global",
+                    "ZIG_LOCAL_CACHE_DIR": "${workspaceFolder}/.cache/local",
+                }
+            },
+        },
+        {
+            "label": "Print defines for mac os",
+            "type": "shell",
+            "command": "zig c++ -o defines_mac.txt -target x86_64-macos -fno-debug-macro -g0 -fno-standalone-debug -dynamic -shared -std=c++20 -stdlib=libc++ -Wall -Wextra -dM -E ../src/common.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/out",
+                "env": {
+                    "ZIG_GLOBAL_CACHE_DIR": "${workspaceFolder}/.cache/global",
+                    "ZIG_LOCAL_CACHE_DIR": "${workspaceFolder}/.cache/local",
+                }
+            },
+        },
+        {
+            "label": "Print defines for windows",
+            "type": "shell",
+            "command": "zig c++ -o defines_windows.txt -target x86_64-windows -fno-debug-macro -g0 -fno-standalone-debug -dynamic -shared -l UxTheme -l Dwmapi -l User32 -std=c++20 -stdlib=libc++ -Wall -Wextra -dM -E ../src/common.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/out",
+                "env": {
+                    "ZIG_GLOBAL_CACHE_DIR": "${workspaceFolder}/.cache/global",
+                    "ZIG_LOCAL_CACHE_DIR": "${workspaceFolder}/.cache/local",
+                }
+            },
+        },
+        {
+            "label": "Print defines",
+            "dependsOn": [
+                "Print defines for linux",
+                "Print defines for mac os",
+                "Print defines for windows"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": []
+        }
+    ]
+}
