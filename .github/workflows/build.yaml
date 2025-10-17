@@ -63,6 +63,17 @@ jobs:
         shell: bash
         working-directory: Cpp
 
+      - name: Install nasm
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get install nasm
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install nasm
+          else
+            echo "Done"
+          fi
+        shell: bash
+
       - name: Configure xmake and install dependencies
         run: xmake config -vD --arch=${{ matrix.runner.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} ${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
         shell: bash
