@@ -39,7 +39,8 @@ target( "VideoEncoderNative" )
     set_group( "LIBS" )
 
     if is_plat( "linux" ) then
-        --add_ldflags( "-Wl", "-Bsymbolic" )
+        add_cxflags( "-fPIC" )
+        add_ldflags( "-Wl", "-Bsymbolic" )
         --add_packages( "glib" )
     elseif is_plat( "macosx" ) then
         --add_ldflags( "-Wl", "-Bsymbolic" )
