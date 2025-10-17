@@ -39,10 +39,13 @@ target( "VideoEncoderNative" )
     set_group( "LIBS" )
 
     if is_plat( "linux" ) then
+        add_ldflags( "-Wl", "-Bsymbolic" )
         --add_packages( "glib" )
     elseif is_plat( "macosx" ) then
+        --add_ldflags( "-Wl", "-Bsymbolic" )
         --add_packages( "lodepng" )
     elseif is_plat( "windows" ) then
+        --add_ldflags( "-Wl", "-Bsymbolic" )
         --add_syslinks( "Bcrypt", "Mfplat", "mfuuid", "Ole32", "Secur32", "Strmiids", "User32", "ws2_32" )
     else
     end
@@ -88,7 +91,6 @@ target( "ffmpeg-helper" )
         else
             add_frameworks( "AudioToolbox", { public = true } )
         end
-        add_links( "avcodec", "avformat", { public = true } )  -- for github actions
     elseif is_plat( "linux" ) then
         add_syslinks( "dl", "pthread", { public = true } )
     elseif is_plat( "android" ) then

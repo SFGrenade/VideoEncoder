@@ -1,8 +1,6 @@
-#include <stdexcept>
-
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
 #include "main.h"
+
+#include <stdexcept>
 
 namespace VEN {
 
