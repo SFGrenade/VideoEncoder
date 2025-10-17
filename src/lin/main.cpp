@@ -1,69 +1,98 @@
-#include "../main.h"
+#include "main.h"
 
 #include <filesystem>
 
+#include "common.h"
+
 bool Init( char const* base_dir ) {
-  g_base_dir = std::filesystem::path( base_dir );
-  openFile( g_base_dir, true );
-  printInFile( "Initializing library..." );
+  ::VEN::g_base_dir = std::filesystem::path( base_dir );
+  openFile( ::VEN::g_base_dir, true );
+  printInFile( "%s:%d - Initializing library with ( '%s' )", __FUNCTION__, __LINE__, base_dir );
 
   if( _RegisterSignalCallbacks() <= 0 ) {
-    printInFile( "Error registering signal callbacks!" );
+    printInFile( "%s:%d - Error registering signal callbacks!", __FUNCTION__, __LINE__ );
     return false;
   }
 
-  // more code here
+  av_log_set_level( AV_LOG_ERROR );
 
-  printInFile( "Library initialized!" );
+  printInFile( "%s:%d - Library initialized!", __FUNCTION__, __LINE__ );
   return true;
 }
 
 bool Deinit() {
-  printInFile( "Deinitializing library..." );
+  printInFile( "%s:%d - Deinitializing library...", __FUNCTION__, __LINE__ );
 
-  // more code here
-
+  printInFile( "%s:%d - Library deinitialized!", __FUNCTION__, __LINE__ );
   closeFile();
-
   return true;
 }
 
 bool StartNewSequence( int32_t width, int32_t height ) {
-  printInFile( "StartNewSequence( width: %d, height: %d ) - Linux", width, height );
+  printInFile( "%s( width=%d, height=%d ) - Linux", __FUNCTION__, width, height );
+  std::filesystem::path output_filename = ::VEN::g_base_dir / ( std::to_string( ::VEN::g_sequence_index ) + std::string( ".mkv" ) );
+  ::VEN::g_sequence_index = ::VEN::g_sequence_index + 1;
 
-  printInFile( "StartNewSequence is unsupported on Linux" );
+  printInFile( "Opening new sequence: %s", output_filename.string().c_str() );
 
-  return false;
-}
+  if( ::VEN::g_out_wrapper ) {
+    delete ::VEN::g_out_wrapper;
+    ::VEN::g_out_wrapper = nullptr;
+  }
+  ::VEN::g_out_wrapper = new ::VEN::OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
 
-bool SendExrBytes( uint8_t const* bytes, int32_t length ) {
-  printInFile( "SendExrBytes( bytes: %p, length: %d ) - Linux", bytes, length );
-
-  printInFile( "SendExrBytes is unsupported on Linux" );
-
-  return false;
+  printInFile( "%s:%d~", __FUNCTION__, __LINE__ );
+  return true;
 }
 
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
-  printInFile( "SendPngBytes( bytes: %p, length: %d ) - Linux", bytes, length );
+  printInFile( "%s( bytes: %p, length: %d ) - Linux", __FUNCTION__, bytes, length );
 
-  printInFile( "SendPngBytes is unsupported on Linux" );
+  ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
-  return false;
-}
+  // get png frames
+  std::vector< uint8_t > png_bytes( bytes, bytes + length );
+  std::vector< AVFrame* > png_frames;
+  input.read_png_bytes( png_bytes, png_frames );
 
-bool SendTgaBytes( uint8_t const* bytes, int32_t length ) {
-  printInFile( "SendTgaBytes( bytes: %p, length: %d ) - Linux", bytes, length );
+  // convert png frames to vp8 frames
+  std::vector< AVFrame* > vp8_frames;
+  for( AVFrame* png_frame : png_frames ) {
+    // convert and add new AVFrame* to vp8_frames
+    AVFrame* vp8_frame = av_frame_alloc();
 
-  printInFile( "SendTgaBytes is unsupported on Linux" );
+    // use sws_* to convert from png to vp8, may need more methods on both in-/output classes to get things like width/height and shit
 
-  return false;
+    vp8_frames.push_back( vp8_frame );
+  }
+
+  // write vp8 frames
+  if( ::VEN::g_out_wrapper ) {
+    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames );
+  }
+
+  // cleanup
+  for( uint64_t i = 0; i < png_frames.size(); i++ ) {
+    av_frame_free( &png_frames[i] );
+  }
+  for( uint64_t i = 0; i < vp8_frames.size(); i++ ) {
+    av_frame_free( &vp8_frames[i] );
+  }
+  png_frames.clear();
+  vp8_frames.clear();
+
+  printInFile( "%s:%d~", __FUNCTION__, __LINE__ );
+  return true;
 }
 
 bool StopSequence() {
-  printInFile( "StopSequence() - Linux" );
+  printInFile( "%s() - Linux", __FUNCTION__ );
 
-  printInFile( "StopSequence is unsupported on Linux" );
+  if( ::VEN::g_out_wrapper ) {
+    delete ::VEN::g_out_wrapper;
+    ::VEN::g_out_wrapper = nullptr;
+  }
 
-  return false;
+  printInFile( "%s:%d~", __FUNCTION__, __LINE__ );
+  return true;
 }

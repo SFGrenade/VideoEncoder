@@ -65,9 +65,9 @@ static OutputSequenceWrapper* g_out_wrapper = nullptr;
 }  // namespace VEN
 
 extern "C" {
-EXPORT bool Init( char const* base_dir, int32_t width, int32_t height );
+EXPORT bool Init( char const* base_dir );
 EXPORT bool Deinit();
-EXPORT bool StartNewSequence();
+EXPORT bool StartNewSequence( int32_t width, int32_t height );
 EXPORT bool SendPngBytes( uint8_t const* bytes, int32_t length );
 EXPORT bool StopSequence();
 }
