@@ -89,7 +89,7 @@ target( "ffmpeg-helper" )
             add_frameworks( "AudioToolbox", { public = true } )
         end
     elseif is_plat( "linux" ) then
-        add_ldflags( "-Wl,-Bsymbolic", { public = true } ) -- thanks to ffmpeg
+        add_ldflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
         add_syslinks( "dl", "pthread", { public = true } )
     elseif is_plat( "android" ) then
         add_syslinks( "dl", "android", "mediandk", { public = true } )
