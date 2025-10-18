@@ -25,7 +25,7 @@ public class VideoEncoder : Mod
         {
             Directory.CreateDirectory(_dir);
         }
-        NativeWrapper.InitLibrary(_dir, Screen.width, Screen.height);
+        NativeWrapper.InitLibrary(_dir);
     }
     
     public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)

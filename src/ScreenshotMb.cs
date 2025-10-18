@@ -53,7 +53,7 @@ public class ScreenshotMb : MonoBehaviour
 
     private void PrepareRenderTexture()
     {
-        if (!NativeWrapper.StartNewSequence())
+        if (!NativeWrapper.StartNewSequence(Screen.width, Screen.height))
             return;
         _doTakeScreenshots = true;
 
