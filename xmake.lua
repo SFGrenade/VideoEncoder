@@ -89,8 +89,29 @@ target( "ffmpeg-helper" )
             add_frameworks( "AudioToolbox", { public = true } )
         end
     elseif is_plat( "linux" ) then
+        add_arflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_asflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_cflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_cuflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_culdflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_culdflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
         add_cxflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_cxxflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_dcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_fcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_gcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_kcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
         add_ldflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_mflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_mrcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_mxflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_mxxflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_ncflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_pcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_rcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_scflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_shflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
+        add_zcflags( "-Wl,-Bsymbolic", { force = true, public = true } ) -- thanks to ffmpeg
         add_syslinks( "dl", "pthread", { public = true } )
     elseif is_plat( "android" ) then
         add_syslinks( "dl", "android", "mediandk", { public = true } )
