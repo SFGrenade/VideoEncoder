@@ -32,6 +32,9 @@ end
 --add_requireconfs( "**", "*.**", { system = false } )
 --add_requireconfs( "*", { configs = { shared = false } } )
 
+add_requires( "fmt", { alias = "fmt" } )
+add_requireconfs( "fmt", { configs = { header_only = true } } )
+
 target( "VideoEncoderNative" )
     set_kind( "shared" )
 
@@ -46,6 +49,7 @@ target( "VideoEncoderNative" )
         -- maybe some platform-specific stuff
     else
     end
+    add_packages( "fmt", { public = true } )
     add_deps( "ffmpeg-helper", { public = true } )
 
     --add_includedirs( "src", { public = true } )

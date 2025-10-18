@@ -1,27 +1,11 @@
 #include "common.h"
 
-FILE *logFile = nullptr;
-
-void openFile( std::filesystem::path const& base_path, bool truncate ) {
-  char const *openMode = "a";
-  if( truncate ) {
-    openMode = "w";
-  }
-  if( logFile == nullptr ) {
-    logFile = fopen( (base_path / "VideoEncoder-Native.log").string().c_str(), openMode );
-  }
+void setCallback( LogCallback callback ) {
+  g_log_message = callback;
 }
-void closeFile() {
-  if( logFile != nullptr ) {
-    fclose( logFile );
-    logFile = nullptr;
-  }
-}
-void printInFile( char const *msg ) {
-  if( logFile != nullptr ) {
-    fprintf( logFile, "%s", msg );
-    fprintf( logFile, "\n" );
-    fflush( logFile );
+void printInFile( std::string const &msg ) {
+  if( g_log_message ) {
+    g_log_message( msg.c_str() );
   }
 }
 

@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "_ffmpeg.h"
+#include "common.h"
 
 namespace VEN {
 
@@ -10,13 +11,13 @@ InputSequenceWrapper::InputSequenceWrapper( AVCodecID codec ) {
   int avret;
   _codec = avcodec_find_encoder( codec );
   if( !_codec ) {
-    printInFile( "%p:%s:%d - _codec (%d) is nullptr!", this, __FUNCTION__, __LINE__, codec );
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - _codec ({:d}) is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__, int( codec ) ) );
     throw std::runtime_error( "_codec is nullptr" );
   }
 
   _codec_ctx = avcodec_alloc_context3( _codec );
   if( !_codec_ctx ) {
-    printInFile( "%p:%s:%d - _codec_ctx (%d) is nullptr!", this, __FUNCTION__, __LINE__, codec );
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - _codec_ctx ({:d}) is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__, int( codec ) ) );
     throw std::runtime_error( "_codec_ctx is nullptr" );
   }
 }
@@ -37,19 +38,19 @@ OutputSequenceWrapper::OutputSequenceWrapper( AVCodecID codec, int32_t width, in
   int avret;
   _codec = avcodec_find_encoder( codec );
   if( !_codec ) {
-    printInFile( "%p:%s:%d - _codec (%d) is nullptr!", this, __FUNCTION__, __LINE__, codec );
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - _codec ({:d}) is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__, int( codec ) ) );
     throw std::runtime_error( "_codec is nullptr" );
   }
 
   _codec_ctx = avcodec_alloc_context3( _codec );
   if( !_codec_ctx ) {
-    printInFile( "%p:%s:%d - _codec_ctx (%d) is nullptr!", this, __FUNCTION__, __LINE__, codec );
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - _codec_ctx ({:d}) is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__, int( codec ) ) );
     throw std::runtime_error( "_codec_ctx is nullptr" );
   }
 
   avret = avformat_alloc_output_context2( &_fmt_ctx, nullptr, nullptr, _file_path.string().c_str() );
   if( ( 0 > avret ) || ( !_fmt_ctx ) ) {
-    printInFile( "%p:%s:%d - avformat_alloc_output_context2 returned %d!", this, __FUNCTION__, __LINE__, codec );
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - avformat_alloc_output_context2 returned {:d}!", static_cast< void* >( this ), __FUNCTION__, __LINE__, int( avret ) ) );
     throw std::runtime_error( "avformat_alloc_output_context2 error" );
   }
 }

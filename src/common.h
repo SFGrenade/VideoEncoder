@@ -15,28 +15,28 @@
 #pragma warning Unknown dynamic link import / export semantics.
 #endif
 
-#define MSG_SIZE 256
-
-#include <cstdio>
-#include <filesystem>
+#include <fmt/base.h>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+#include <fmt/chrono.h>
+#include <fmt/std.h>
+#include <string>
 #include <utility>
 
-extern FILE *logFile;
-void openFile( std::filesystem::path const& log_file, bool truncate );
-void closeFile();
-void printInFile( char const *msg );
-template < typename... Args >
-void printInFile( char const *format, Args... args ) {
-  if( logFile != nullptr ) {
-    fprintf( logFile, format, std::forward< Args >( args )... );
-    fprintf( logFile, "\n" );
-    fflush( logFile );
-  }
-}
+typedef void ( *LogCallback )( char const *message );
+static LogCallback g_log_message = nullptr;
+
+void setCallback( LogCallback callback );
+void printInFile( std::string const &msg );
+// for some reason fmt shits itself when doing this
+// template < typename... Args >
+// void printInFile( std::string const &format, Args... args ) {
+//   printInFile( fmt::format( format, std::forward< Args >( args )... ) );
+//   // printInFile( fmt::format( format, args... ) );
+// }
 
 #if defined( CM_Windows )
 #include <Windows.h>
-
 extern "C" {
 BOOL WINAPI DllMain( HINSTANCE const dllModHandle, DWORD const callReason, LPVOID const reserved );
 // BOOL WINAPI _DllMainCRTStartup( HINSTANCE const dllModHandle, DWORD const callReason, LPVOID const reserved );

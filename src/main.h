@@ -18,7 +18,8 @@ int _RegisterSignalCallbacks();
 #endif
 
 namespace VEN {
-static std::filesystem::path g_base_dir;
+static std::filesystem::path g_mod_dir;
+static std::filesystem::path g_save_dir;
 static std::atomic_uint64_t g_sequence_index = 0;
 
 class InputSequenceWrapper {
@@ -59,7 +60,7 @@ static OutputSequenceWrapper* g_out_wrapper = nullptr;
 }  // namespace VEN
 
 extern "C" {
-EXPORT bool Init( char const* base_dir );
+EXPORT bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback );
 EXPORT bool Deinit();
 EXPORT bool StartNewSequence( int32_t width, int32_t height );
 EXPORT bool SendPngBytes( uint8_t const* bytes, int32_t length );

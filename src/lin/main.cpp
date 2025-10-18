@@ -5,36 +5,36 @@
 #include "_ffmpeg.h"
 #include "common.h"
 
-bool Init( char const* base_dir ) {
-  ::VEN::g_base_dir = std::filesystem::path( base_dir );
-  openFile( ::VEN::g_base_dir, true );
-  printInFile( "%s:%d - Initializing library with ( '%s' )", __FUNCTION__, __LINE__, base_dir );
+bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback ) {
+  ::VEN::g_mod_dir = std::filesystem::path( mod_dir );
+  ::VEN::g_save_dir = std::filesystem::path( save_dir );
+  setCallback( logging_callback );
+  printInFile( fmt::format( "{:s}:{:d} - Initializing library with ( '{:s}', '{:s}' )", __FUNCTION__, __LINE__, mod_dir, save_dir ) );
 
   if( _RegisterSignalCallbacks() <= 0 ) {
-    printInFile( "%s:%d - Error registering signal callbacks!", __FUNCTION__, __LINE__ );
+    printInFile( fmt::format( "{:s}:{:d} - Error registering signal callbacks!", __FUNCTION__, __LINE__ ) );
     return false;
   }
 
   av_log_set_level( AV_LOG_ERROR );
 
-  printInFile( "%s:%d - Library initialized!", __FUNCTION__, __LINE__ );
+  printInFile( fmt::format( "{:s}:{:d} - Library initialized!", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool Deinit() {
-  printInFile( "%s:%d - Deinitializing library...", __FUNCTION__, __LINE__ );
+  printInFile( fmt::format( "{:s}:{:d} - Deinitializing library...", __FUNCTION__, __LINE__ ) );
 
-  printInFile( "%s:%d - Library deinitialized!", __FUNCTION__, __LINE__ );
-  closeFile();
+  printInFile( fmt::format( "{:s}:{:d} - Library deinitialized!", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool StartNewSequence( int32_t width, int32_t height ) {
-  printInFile( "%s( width=%d, height=%d ) - Linux", __FUNCTION__, width, height );
-  std::filesystem::path output_filename = ::VEN::g_base_dir / ( std::to_string( ::VEN::g_sequence_index ) + std::string( ".mkv" ) );
+  printInFile( fmt::format( "{:s}( width={:d}, height={:d} ) - Linux", __FUNCTION__, width, height ) );
+  std::filesystem::path output_filename = ::VEN::g_mod_dir / ( std::to_string( ::VEN::g_sequence_index ) + std::string( ".mkv" ) );
   ::VEN::g_sequence_index = ::VEN::g_sequence_index + 1;
 
-  printInFile( "Opening new sequence: %s", output_filename.string().c_str() );
+  printInFile( fmt::format( "Opening new sequence: {:s}", output_filename.string() ) );
 
   if( ::VEN::g_out_wrapper ) {
     delete ::VEN::g_out_wrapper;
@@ -42,12 +42,12 @@ bool StartNewSequence( int32_t width, int32_t height ) {
   }
   ::VEN::g_out_wrapper = new ::VEN::OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
 
-  printInFile( "%s:%d~", __FUNCTION__, __LINE__ );
+  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
-  printInFile( "%s( bytes: %p, length: %d ) - Linux", __FUNCTION__, bytes, length );
+  printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} ) - Linux", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
 
   ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
@@ -82,18 +82,18 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   png_frames.clear();
   vp8_frames.clear();
 
-  printInFile( "%s:%d~", __FUNCTION__, __LINE__ );
+  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool StopSequence() {
-  printInFile( "%s() - Linux", __FUNCTION__ );
+  printInFile( fmt::format( "{:s}() - Linux", __FUNCTION__ ) );
 
   if( ::VEN::g_out_wrapper ) {
     delete ::VEN::g_out_wrapper;
     ::VEN::g_out_wrapper = nullptr;
   }
 
-  printInFile( "%s:%d~", __FUNCTION__, __LINE__ );
+  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }

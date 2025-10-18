@@ -2,17 +2,19 @@
 
 #include <signal.h>
 
+#include "common.h"
+
 void _SignalCallback( int const sigNum ) {
-  printInFile( "Signal %d received", sigNum );
+  printInFile( fmt::format( "Signal {:d} received", sigNum ) );
 }
 int _RegisterSignalCallbacks() {
-  printInFile( "Registering %d signal callbacks...", NSIG );
+  printInFile( fmt::format( "Registering {:d} signal callbacks...", NSIG ) );
   int amountRegistered = 0;
 
   for( int i = 0; i < NSIG; i++ ) {
     amountRegistered += signal( i, _SignalCallback ) != SIG_ERR;
   }
 
-  printInFile( "%d signal callbacks registered!", amountRegistered );
+  printInFile( fmt::format( "{:d} signal callbacks registered!", amountRegistered ) );
   return amountRegistered;
 }
