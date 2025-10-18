@@ -21,6 +21,8 @@
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
   </PropertyGroup>
   <Import Project="LocalOverrides.targets" Condition="Exists('LocalOverrides.targets')" />
+  <!-- use this instead of the regular when building locally -->
+  <!--<Import Project="build_steps.local.targets" />-->
   <Import Project="build_steps.targets" />
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' AND Exists('$(AssemblyOriginatorKeyFile)') ">
     <SignAssembly>true</SignAssembly>
