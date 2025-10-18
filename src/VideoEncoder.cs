@@ -2,6 +2,7 @@
 using Modding;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Modding.Utils;
 using UnityEngine;
@@ -18,6 +19,9 @@ public class VideoEncoder : Mod
     public override string GetVersion() => Assembly.GetExecutingAssembly().GetName().Version.ToString();
     private static string _dir;
 
+    // apparently a reference is needed for no crashes
+    private static NativeWrapper.LogCallback _callbackDelegate;
+
     public VideoEncoder() : base("Video Encoder")
     {
         _dir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Screenshots");
@@ -25,16 +29,16 @@ public class VideoEncoder : Mod
         {
             Directory.CreateDirectory(_dir);
         }
-        NativeWrapper.InitLibrary(_dir);
+
+        _callbackDelegate = DebugLog;
+        NativeWrapper.InitLibrary(_dir, Application.persistentDataPath, Marshal.GetFunctionPointerForDelegate(_callbackDelegate));
     }
-    
+
     public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
     {
         DebugLog("Initializing...");
 
-        ModHooks.ApplicationQuitHook += () => {
-            NativeWrapper.DeinitLibrary();
-        };
+        ModHooks.ApplicationQuitHook += () => { NativeWrapper.DeinitLibrary(); };
         RegisterCallbacks();
 
         DebugLog("Initialized!");
@@ -61,6 +65,7 @@ public class VideoEncoder : Mod
         MLogger.LogDebug(fmtMessage);
         ULogger.Log(fmtMessage);
     }
+
     internal static void DebugLog(object message)
     {
         DebugLog($"{message}");
