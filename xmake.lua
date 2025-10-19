@@ -58,14 +58,14 @@ target( "VideoEncoderNative" )
     add_headerfiles( "src/*.h" )
     add_files( "src/*.cpp" )
 
-    if is_plat( "linux" ) then
-        add_files( "src/lin/*.cpp" )
-    elseif is_plat( "macosx" ) then
-        add_files( "src/mac/*.cpp" )
-    elseif is_plat( "windows" ) then
-        add_files( "src/win/*.cpp" )
-    else
-    end
+    --if is_plat( "linux" ) then
+    --    add_files( "src/lin/*.cpp" )
+    --elseif is_plat( "macosx" ) then
+    --    add_files( "src/mac/*.cpp" )
+    --elseif is_plat( "windows" ) then
+    --    add_files( "src/win/*.cpp" )
+    --else
+    --end
 target_end()
 
 add_requires( "vcpkg::ffmpeg[avcodec,avformat,vpx,zlib]", { alias = "ffmpeg" } )

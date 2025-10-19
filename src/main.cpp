@@ -25,7 +25,7 @@ bool Deinit() {
 }
 
 bool StartNewSequence( int32_t width, int32_t height ) {
-  printInFile( fmt::format( "{:s}( width={:d}, height={:d} ) - Windows", __FUNCTION__, width, height ) );
+  printInFile( fmt::format( "{:s}( width={:d}, height={:d} )", __FUNCTION__, width, height ) );
   std::filesystem::path output_filename = ::VEN::g_mod_dir / ( std::to_string( ::VEN::g_sequence_index ) + std::string( ".mkv" ) );
   ::VEN::g_sequence_index = ::VEN::g_sequence_index + 1;
 
@@ -42,7 +42,7 @@ bool StartNewSequence( int32_t width, int32_t height ) {
 }
 
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
-  printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} ) - Windows", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
+  printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
 
   ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
@@ -105,7 +105,7 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
 }
 
 bool StopSequence() {
-  printInFile( fmt::format( "{:s}() - Windows", __FUNCTION__ ) );
+  printInFile( fmt::format( "{:s}()", __FUNCTION__ ) );
 
   if( ::VEN::g_out_wrapper ) {
     delete ::VEN::g_out_wrapper;
