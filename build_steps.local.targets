@@ -1,8 +1,8 @@
 <Project>
     <Target Name="Copy mod to export dir" AfterTargets="PostBuildEvent">
         <ItemGroup>
-            <NativeLibraries Include="$(NativeBinaries)/lib/libVideoEncoderNative.*"/>
-            <NativeLibrariesWin Include="$(NativeBinaries)/bin/VideoEncoderNative.*"/>
+            <NativeLibraries Include="$(NativeBinaries)/lib/*"/>
+            <NativeLibrariesWin Include="$(NativeBinaries)/bin/*"/>
         </ItemGroup>
 
         <!-- Remove export dir and make a new one (it's simpler than removing individual files inside the folder) -->
