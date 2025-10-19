@@ -1,0 +1,70 @@
+Encoder libvpx [libvpx VP8]:
+    General capabilities: dr1 delay threads 
+    Threading capabilities: other
+    Supported pixel formats: yuv420p yuva420p
+libvpx-vp8 encoder AVOptions:
+  -lag-in-frames     <int>        E..V....... Number of frames to look ahead for alternate reference frame selection (from -1 to INT_MAX) (default -1)
+  -arnr-maxframes    <int>        E..V....... altref noise reduction max frame count (from -1 to INT_MAX) (default -1)
+  -arnr-strength     <int>        E..V....... altref noise reduction filter strength (from -1 to INT_MAX) (default -1)
+  -arnr-type         <int>        E..V....... altref noise reduction filter type (from -1 to INT_MAX) (default -1)
+     backward        1            E..V.......
+     forward         2            E..V.......
+     centered        3            E..V.......
+  -tune              <int>        E..V....... Tune the encoding to a specific scenario (from -1 to INT_MAX) (default -1)
+     psnr            0            E..V.......
+     ssim            1            E..V.......
+  -deadline          <int>        E..V....... Time to spend encoding, in microseconds. (from INT_MIN to INT_MAX) (default good)
+     best            0            E..V.......
+     good            1000000      E..V.......
+     realtime        1            E..V.......
+  -error-resilient   <flags>      E..V....... Error resilience configuration (default 0)
+     default                      E..V....... Improve resiliency against losses of whole frames
+     partitions                   E..V....... The frame partitions are independently decodable by the bool decoder, meaning that partitions can be decoded even though earlier partitions have been lost. Note that intra prediction is still done over the partition boundary.
+  -max-intra-rate    <int>        E..V....... Maximum I-frame bitrate (pct) 0=unlimited (from -1 to INT_MAX) (default -1)
+  -crf               <int>        E..V....... Select the quality for constant quality mode (from -1 to 63) (default -1)
+  -static-thresh     <int>        E..V....... A change threshold on blocks below which they will be skipped by the encoder (from 0 to INT_MAX) (default 0)
+  -drop-threshold    <int>        E..V....... Frame drop threshold (from INT_MIN to INT_MAX) (default 0)
+  -noise-sensitivity <int>        E..V....... Noise sensitivity (from 0 to 4) (default 0)
+  -undershoot-pct    <int>        E..V....... Datarate undershoot (min) target (%) (from -1 to 100) (default -1)
+  -overshoot-pct     <int>        E..V....... Datarate overshoot (max) target (%) (from -1 to 1000) (default -1)
+  -ts-parameters     <dictionary> E..V....... Temporal scaling configuration using a :-separated list of key=value parameters
+  -auto-alt-ref      <int>        E..V....... Enable use of alternate reference frames (2-pass only) (from -1 to 2) (default -1)
+  -cpu-used          <int>        E..V....... Quality/Speed ratio modifier (from -16 to 16) (default 1)
+  -screen-content-mode <int>        E..V....... Encoder screen content mode (from -1 to 2) (default -1)
+  -speed             <int>        E..V.......  (from -16 to 16) (default 1)
+  -quality           <int>        E..V.......  (from INT_MIN to INT_MAX) (default good)
+     best            0            E..V.......
+     good            1000000      E..V.......
+     realtime        1            E..V.......
+  -vp8flags          <flags>      E..V.......  (default 0)
+     error_resilient              E..V....... enable error resilience
+     altref                       E..V....... enable use of alternate reference frames (VP8/2-pass only)
+  -arnr_max_frames   <int>        E..V....... altref noise reduction max frame count (from 0 to 15) (default 0)
+  -arnr_strength     <int>        E..V....... altref noise reduction filter strength (from 0 to 6) (default 3)
+  -arnr_type         <int>        E..V....... altref noise reduction filter type (from 1 to 3) (default 3)
+  -rc_lookahead      <int>        E..V....... Number of frames to look ahead for alternate reference frame selection (from 0 to 25) (default 25)
+  -sharpness         <int>        E..V....... Increase sharpness at the expense of lower PSNR (from -1 to 7) (default -1)
+
+Encoder vp8_vaapi [VP8 (VAAPI)]:
+    General capabilities: dr1 delay hardware 
+    Threading capabilities: none
+    Supported hardware devices: vaapi 
+    Supported pixel formats: vaapi
+vp8_vaapi AVOptions:
+  -idr_interval      <int>        E..V....... Distance (in I-frames) between key frames (from 0 to INT_MAX) (default 0)
+  -b_depth           <int>        E..V....... Maximum B-frame reference depth (from 1 to INT_MAX) (default 1)
+  -async_depth       <int>        E..V....... Maximum processing parallelism. Increase this to improve single channel performance. (from 1 to 64) (default 2)
+  -low_power         <boolean>    E..V....... Use low-power encoding mode (only available on some platforms; may not support all encoding features) (default false)
+  -max_frame_size    <int>        E..V....... Maximum frame size (in bytes) (from 0 to INT_MAX) (default 0)
+  -rc_mode           <int>        E..V....... Set rate control mode (from 0 to 6) (default auto)
+     auto            0            E..V....... Choose mode automatically based on other parameters
+     CQP             1            E..V....... Constant-quality
+     CBR             2            E..V....... Constant-bitrate
+     VBR             3            E..V....... Variable-bitrate
+     ICQ             4            E..V....... Intelligent constant-quality
+     QVBR            5            E..V....... Quality-defined variable-bitrate
+     AVBR            6            E..V....... Average variable-bitrate
+  -blbrc             <boolean>    E..V....... Block level based bitrate control (default false)
+  -loop_filter_level <int>        E..V....... Loop filter level (from 0 to 63) (default 16)
+  -loop_filter_sharpness <int>        E..V....... Loop filter sharpness (from 0 to 15) (default 4)
+

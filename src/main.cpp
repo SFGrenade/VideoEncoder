@@ -1,11 +1,13 @@
 #include "main.h"
 
+#include <chrono>
 #include <filesystem>
 
 #include "_ffmpeg.h"
 #include "common.h"
 
 bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback ) {
+  ::VEN::g_start_time = std::chrono::high_resolution_clock::now();
   ::VEN::g_mod_dir = std::filesystem::path( mod_dir );
   ::VEN::g_save_dir = std::filesystem::path( save_dir );
   setCallback( logging_callback );
@@ -42,7 +44,7 @@ bool StartNewSequence( int32_t width, int32_t height ) {
 }
 
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
-  printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
+  // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
 
   ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
@@ -99,12 +101,14 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   png_frames.clear();
   vp8_frames.clear();
 
-  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
+  // printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height ) {
-  printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length, width, height ) );
+  // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length, width, height ) );
+  // std::chrono::duration< double > seconds_since_init = std::chrono::high_resolution_clock::now() - ::VEN::g_start_time;
+  // printInFile( fmt::format( "{:s} - now is {}", __FUNCTION__, seconds_since_init.count() ) );
 
   ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
@@ -161,7 +165,7 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height )
   png_frames.clear();
   vp8_frames.clear();
 
-  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
+  // printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 

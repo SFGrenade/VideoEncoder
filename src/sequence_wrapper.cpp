@@ -282,11 +282,18 @@ OutputSequenceWrapper::OutputSequenceWrapper( AVCodecID codec, int32_t width, in
   _codec_ctx->width = _width;
   _codec_ctx->height = _height;
   _codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-  _codec_ctx->time_base = AVRational{ 1, 30 };  // sure why not
-  _codec_ctx->framerate = AVRational{ 30, 1 };  // sure why not
+  _codec_ctx->time_base = AVRational{ 1, 50 };  // sure why not
+  _codec_ctx->framerate = AVRational{ 50, 1 };  // sure why not
   _codec_ctx->bit_rate = 1'000'000;             // sure why not
 
-  avret = avcodec_open2( _codec_ctx, _codec, nullptr );
+  AVDictionary* opts = nullptr;
+  av_dict_set( &opts, "deadline", "realtime", 0 );
+  av_dict_set( &opts, "cpu-used", "16", 0 );
+  av_dict_set( &opts, "speed", "16", 0 );
+  av_dict_set( &opts, "quality", "realtime", 0 );
+  av_dict_set( &opts, "threads", "4", 0 );
+
+  avret = avcodec_open2( _codec_ctx, _codec, &opts );
   if( 0 > avret ) {
     printInFile( fmt::format( "{:p}:{:s}:{:d} - avformat_alloc_output_context2 returned {:d}: {:s}!",
                               static_cast< void* >( this ),

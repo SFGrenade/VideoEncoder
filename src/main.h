@@ -3,6 +3,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <vector>
@@ -19,6 +20,7 @@ namespace VEN {
 static std::filesystem::path g_mod_dir;
 static std::filesystem::path g_save_dir;
 static std::atomic_uint64_t g_sequence_index = 0;
+static std::chrono::high_resolution_clock::time_point g_start_time;
 
 class InputSequenceWrapper {
   public:
