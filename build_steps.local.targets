@@ -1,5 +1,10 @@
 <Project>
     <Target Name="Copy mod to export dir" AfterTargets="PostBuildEvent">
+        <ItemGroup>
+            <NativeLibraries Include="$(NativeBinaries)/lib/libVideoEncoderNative.*"/>
+            <NativeLibrariesWin Include="$(NativeBinaries)/bin/VideoEncoderNative.*"/>
+        </ItemGroup>
+
         <!-- Remove export dir and make a new one (it's simpler than removing individual files inside the folder) -->
         <RemoveDir Condition="Exists('$(ExportDir)/$(TargetName)/')" Directories="$(ExportDir)/$(TargetName)/" />
         <MakeDir Directories="$(ExportDir)/$(TargetName)/" />
@@ -12,9 +17,8 @@
         <!-- Copy built files (.dll, .pdb & .xml as well as optional dep libs) into the export folder for zipping -->
         <Copy Condition="'$(DocumentationFile)'!=''" SourceFiles="README.md;$(TargetPath);$(TargetDir)/$(TargetName).pdb;$(TargetDir)/$(TargetName).xml;$(TargetName).dll.config" DestinationFolder="$(ExportDir)/$(TargetName)/zip/" />
         <Copy Condition="'$(DocumentationFile)'==''" SourceFiles="README.md;$(TargetPath);$(TargetDir)/$(TargetName).pdb;$(TargetName).dll.config" DestinationFolder="$(ExportDir)/$(TargetName)/zip/" />
-        <Copy Condition="Exists('$(NativeBinaries)/lib/libVideoEncoderNative.so')" SourceFiles="$(NativeBinaries)/lib/libVideoEncoderNative.so" DestinationFolder="$(ExportDir)/$(TargetName)/zip/" />
-        <Copy Condition="Exists('$(NativeBinaries)/lib/libVideoEncoderNative.dylib')" SourceFiles="$(NativeBinaries)/lib/libVideoEncoderNative.dylib" DestinationFolder="$(ExportDir)/$(TargetName)/zip/" />
-        <Copy Condition="Exists('$(NativeBinaries)/bin/VideoEncoderNative.dll')" SourceFiles="$(NativeBinaries)/bin/VideoEncoderNative.dll" DestinationFolder="$(ExportDir)/$(TargetName)/zip/Com/" />
+        <Copy SourceFiles="@(NativeLibraries)" DestinationFolder="$(ExportDir)/$(TargetName)/zip/" />
+        <Copy SourceFiles="@(NativeLibrariesWin)" DestinationFolder="$(ExportDir)/$(TargetName)/zip/Com/" />
 
         <!-- Zip the release package -->
         <ZipDirectory SourceDirectory="$(ExportDir)/$(TargetName)/zip/" DestinationFile="$(ExportDir)/$(TargetName)/$(TargetName).zip" />
@@ -43,8 +47,7 @@
         <!-- Copy built files (.dll, .pdb & .xml as well as optional dep libs) into the game's mod folder -->
         <Copy Condition="'$(DocumentationFile)'!=''" SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb;$(TargetDir)/$(TargetName).xml;$(TargetName).dll.config" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
         <Copy Condition="'$(DocumentationFile)'==''" SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb;$(TargetName).dll.config" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
-        <Copy Condition="Exists('$(NativeBinaries)/lib/libVideoEncoderNative.so')" SourceFiles="$(NativeBinaries)/lib/libVideoEncoderNative.so" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
-        <Copy Condition="Exists('$(NativeBinaries)/lib/libVideoEncoderNative.dylib')" SourceFiles="$(NativeBinaries)/lib/libVideoEncoderNative.dylib" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
-        <Copy Condition="Exists('$(NativeBinaries)/bin/VideoEncoderNative.dll')" SourceFiles="$(NativeBinaries)/bin/VideoEncoderNative.dll" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/Com/" />
+        <Copy SourceFiles="@(NativeLibraries)" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/" />
+        <Copy SourceFiles="@(NativeLibrariesWin)" DestinationFolder="$(HollowKnightRefs)/Mods/$(TargetName)/Com/" />
     </Target>
 </Project>
