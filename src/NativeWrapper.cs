@@ -120,26 +120,26 @@ public static class NativeWrapper
 
     [DllImport("VideoEncoderNative_Linux", EntryPoint = "SendRawBytes", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool Native_Linux_SendRawBytes([MarshalAs(UnmanagedType.LPArray)] byte[] bytes, [MarshalAs(UnmanagedType.I4)] int size, [MarshalAs(UnmanagedType.I4)] int width, [MarshalAs(UnmanagedType.I4)] int height);
-    private static bool Linux_SendRawBytes_Wrap(byte[] bytes, int width, int height) => Native_Linux_SendRawBytes(bytes, bytes.Length, width, height); 
+    private static extern bool Native_Linux_SendRawBytes([MarshalAs(UnmanagedType.LPArray)] IntPtr bytes, [MarshalAs(UnmanagedType.I4)] int size, [MarshalAs(UnmanagedType.I4)] int width, [MarshalAs(UnmanagedType.I4)] int height);
+    private static bool Linux_SendRawBytes_Wrap(IntPtr bytes, int length, int width, int height) => Native_Linux_SendRawBytes(bytes, length, width, height); 
     [DllImport("VideoEncoderNative_MacOS", EntryPoint = "SendRawBytes", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool Native_MacOS_SendRawBytes([MarshalAs(UnmanagedType.LPArray)] byte[] bytes, [MarshalAs(UnmanagedType.I4)] int size, [MarshalAs(UnmanagedType.I4)] int width, [MarshalAs(UnmanagedType.I4)] int height);
-    private static bool MacOS_SendRawBytes_Wrap(byte[] bytes, int width, int height) => Native_MacOS_SendRawBytes(bytes, bytes.Length, width, height);
+    private static extern bool Native_MacOS_SendRawBytes([MarshalAs(UnmanagedType.LPArray)] IntPtr bytes, [MarshalAs(UnmanagedType.I4)] int size, [MarshalAs(UnmanagedType.I4)] int width, [MarshalAs(UnmanagedType.I4)] int height);
+    private static bool MacOS_SendRawBytes_Wrap(IntPtr bytes, int length, int width, int height) => Native_MacOS_SendRawBytes(bytes, length, width, height);
     [DllImport("VideoEncoderNative_Windows", EntryPoint = "SendRawBytes", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool Native_Windows_SendRawBytes([MarshalAs(UnmanagedType.LPArray)] byte[] bytes, [MarshalAs(UnmanagedType.I4)] int size, [MarshalAs(UnmanagedType.I4)] int width, [MarshalAs(UnmanagedType.I4)] int height);
-    private static bool Windows_SendRawBytes_Wrap(byte[] bytes, int width, int height) => Native_Windows_SendRawBytes(bytes, bytes.Length, width, height);
-    internal static bool SendRawBytes(byte[] bytes, int width, int height)
+    private static extern bool Native_Windows_SendRawBytes([MarshalAs(UnmanagedType.LPArray)] IntPtr bytes, [MarshalAs(UnmanagedType.I4)] int size, [MarshalAs(UnmanagedType.I4)] int width, [MarshalAs(UnmanagedType.I4)] int height);
+    private static bool Windows_SendRawBytes_Wrap(IntPtr bytes, int length, int width, int height) => Native_Windows_SendRawBytes(bytes, length, width, height);
+    internal static bool SendRawBytes(IntPtr bytes, int length, int width, int height)
     {
         switch (SystemInfo.operatingSystemFamily)
         {
             case OperatingSystemFamily.Linux:
-                return Linux_SendRawBytes_Wrap(bytes, width, height);
+                return Linux_SendRawBytes_Wrap(bytes, length, width, height);
             case OperatingSystemFamily.MacOSX:
-                return MacOS_SendRawBytes_Wrap(bytes, width, height);
+                return MacOS_SendRawBytes_Wrap(bytes, length, width, height);
             case OperatingSystemFamily.Windows:
-                return Windows_SendRawBytes_Wrap(bytes, width, height);
+                return Windows_SendRawBytes_Wrap(bytes, length, width, height);
             default:
                 return false;
         };

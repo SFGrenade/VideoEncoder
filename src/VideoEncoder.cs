@@ -68,30 +68,9 @@ public class VideoEncoder : Mod
         customCameraObj.transform.SetParent(self.mainCamera.transform, true);
 
         screenshotCamera = customCameraObj.GetOrAddComponent<Camera>();
-        screenshotCamera.clearFlags = CameraClearFlags.Skybox;
-        screenshotCamera.backgroundColor = new Color(0, 0, 0, 1.0f);
-        screenshotCamera.gateFit = Camera.GateFitMode.Horizontal;
-        screenshotCamera.sensorSize = new Vector2(36, 24);
-        screenshotCamera.lensShift = new Vector2(0, 0);
-        screenshotCamera.focalLength = 50;
-        screenshotCamera.nearClipPlane = 10;
-        screenshotCamera.farClipPlane = 1000;
-        screenshotCamera.fieldOfView = 24;
-        screenshotCamera.orthographic = false;
-        screenshotCamera.orthographicSize = 480;
-        screenshotCamera.depth = 50;
-        screenshotCamera.cullingMask = -1073741857;
-        screenshotCamera.targetTexture = new RenderTexture(Screen.width, Screen.height, 32, RenderTextureFormat.ARGB32);
-        screenshotCamera.stereoTargetEye = StereoTargetEyeMask.Both;
-        screenshotCamera.allowHDR = false;
-        screenshotCamera.allowMSAA = true;
-        screenshotCamera.allowDynamicResolution = false;
-        screenshotCamera.forceIntoRenderTexture = false;
-        screenshotCamera.useOcclusionCulling = true;
-        screenshotCamera.stereoConvergence = 10;
-        screenshotCamera.stereoSeparation = 0.022f;
-        screenshotCamera.transparencySortMode = TransparencySortMode.Orthographic;
+        screenshotCamera.CopyFrom(self.mainCamera);
 
+        screenshotCamera.targetTexture = new RenderTexture(Screen.width, Screen.height, 32, RenderTextureFormat.ARGB32);
         activeRenderTexture = RenderTexture.active;
         RenderTexture.active = screenshotCamera.targetTexture;
 

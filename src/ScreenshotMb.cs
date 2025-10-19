@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UObject = UnityEngine.Object;
 
 namespace VideoEncoder;
@@ -59,16 +60,20 @@ public class ScreenshotMb : MonoBehaviour
 
     private void DoScreenshot(RenderTexture textureToSave)
     {
-        Texture2D image = new Texture2D(textureToSave.width, textureToSave.height, TextureFormat.RGB24, false);
-        image.ReadPixels(new Rect(0, 0, textureToSave.width, textureToSave.height), 0, 0);
-        image.Apply();
+        AsyncGPUReadback.Request(textureToSave, 0, TextureFormat.RGB24, request =>
+        {
+            if (request.hasError || !_doTakeScreenshots)
+                return;
 
-        //byte[] png_texture_bytes = image.EncodeToPNG();
-        byte[] raw_texture_bytes = image.GetRawTextureData();
-        UObject.DestroyImmediate(image);
-
-        //NativeWrapper.SendPngBytes(png_texture_bytes);
-        NativeWrapper.SendRawBytes(raw_texture_bytes, textureToSave.width, textureToSave.height);
+            byte[] data = request.GetData<byte>().ToArray();
+            unsafe
+            {
+                fixed (byte* ptr = data)
+                {
+                    NativeWrapper.SendRawBytes((IntPtr)ptr, data.Length, textureToSave.width, textureToSave.height);
+                }
+            }
+        });
     }
 
     private void CleanupRenderTexture()
