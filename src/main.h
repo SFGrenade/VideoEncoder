@@ -1,6 +1,7 @@
 #ifndef VIDEOENCODERNATIVE_MAIN_H_
 #define VIDEOENCODERNATIVE_MAIN_H_
 
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
@@ -28,13 +29,15 @@ class InputSequenceWrapper {
   InputSequenceWrapper( InputSequenceWrapper& ) = delete;
   ~InputSequenceWrapper();
 
-  bool read_png_bytes( std::vector< uint8_t > const& in_bytes, std::vector< AVFrame* >& out_frames );
+  bool read_png_bytes( std::vector< uint8_t > in_bytes, std::vector< AVFrame* >& out_frames );
 
   private:
   AVCodec const* _codec = nullptr;
 
   AVCodecContext* _codec_ctx = nullptr;
   AVFormatContext* _fmt_ctx = nullptr;
+
+  static uint64_t _avio_read_pos;
 };
 
 class OutputSequenceWrapper {
@@ -44,6 +47,9 @@ class OutputSequenceWrapper {
   ~OutputSequenceWrapper();
 
   bool write_vp8_frames( std::vector< AVFrame* > const& frames );
+
+  int32_t get_width() const;
+  int32_t get_height() const;
 
   private:
   AVCodec const* _codec = nullptr;

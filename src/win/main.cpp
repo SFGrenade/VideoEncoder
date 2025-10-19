@@ -56,15 +56,38 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   std::vector< AVFrame* > png_frames;
   input.read_png_bytes( png_bytes, png_frames );
 
+  SwsContext* sws = nullptr;
+  if( png_frames.size() > 0 ) {
+    sws = sws_getContext( png_frames[0]->width,
+                          png_frames[0]->height,
+                          (AVPixelFormat)png_frames[0]->format,
+                          ::VEN::g_out_wrapper->get_width(),
+                          ::VEN::g_out_wrapper->get_height(),
+                          AV_PIX_FMT_YUV420P,
+                          SWS_BILINEAR,
+                          nullptr,
+                          nullptr,
+                          nullptr );
+  }
+
   // convert png frames to vp8 frames
   std::vector< AVFrame* > vp8_frames;
+  vp8_frames.reserve( png_frames.size() );
   for( AVFrame* png_frame : png_frames ) {
     // convert and add new AVFrame* to vp8_frames
     AVFrame* vp8_frame = av_frame_alloc();
+    vp8_frame->format = AV_PIX_FMT_YUV420P;
+    vp8_frame->width = ::VEN::g_out_wrapper->get_width();
+    vp8_frame->height = ::VEN::g_out_wrapper->get_height();
+    av_frame_get_buffer( vp8_frame, 0 );
 
-    // use sws_* to convert from png to vp8, may need more methods on both in-/output classes to get things like width/height and shit
+    sws_scale( sws, png_frame->data, png_frame->linesize, 0, png_frame->height, vp8_frame->data, vp8_frame->linesize );
 
     vp8_frames.push_back( vp8_frame );
+  }
+
+  if( sws ) {
+    sws_freeContext( sws );
   }
 
   // write vp8 frames
