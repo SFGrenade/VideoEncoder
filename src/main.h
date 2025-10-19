@@ -26,7 +26,8 @@ class InputSequenceWrapper {
   InputSequenceWrapper( InputSequenceWrapper& ) = delete;
   ~InputSequenceWrapper();
 
-  bool read_png_bytes( std::vector< uint8_t > in_bytes, std::vector< AVFrame* >& out_frames );
+  bool read_png_bytes( uint8_t const* in_bytes, uint64_t in_bytes_size, std::vector< AVFrame* >& out_frames );
+  bool read_raw_bytes( uint8_t const* in_bytes, uint64_t in_bytes_size, int width, int height, std::vector< AVFrame* >& out_frames );
 
   private:
   AVCodec const* _codec = nullptr;
@@ -69,6 +70,7 @@ EXPORT bool CDECL Init( char const* mod_dir, char const* save_dir, LogCallback l
 EXPORT bool CDECL Deinit();
 EXPORT bool CDECL StartNewSequence( int32_t width, int32_t height );
 EXPORT bool CDECL SendPngBytes( uint8_t const* bytes, int32_t length );
+EXPORT bool CDECL SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height );
 EXPORT bool CDECL StopSequence();
 }
 

@@ -47,9 +47,70 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
   // get png frames
-  std::vector< uint8_t > png_bytes( bytes, bytes + length );
   std::vector< AVFrame* > png_frames;
-  input.read_png_bytes( png_bytes, png_frames );
+  input.read_png_bytes( bytes, length, png_frames );
+
+  SwsContext* sws = nullptr;
+  if( png_frames.size() > 0 ) {
+    sws = sws_getContext( png_frames[0]->width,
+                          png_frames[0]->height,
+                          (AVPixelFormat)png_frames[0]->format,
+                          ::VEN::g_out_wrapper->get_width(),
+                          ::VEN::g_out_wrapper->get_height(),
+                          AV_PIX_FMT_YUV420P,
+                          SWS_BILINEAR,
+                          nullptr,
+                          nullptr,
+                          nullptr );
+  }
+
+  // convert png frames to vp8 frames
+  std::vector< AVFrame* > vp8_frames;
+  vp8_frames.reserve( png_frames.size() );
+  for( AVFrame* png_frame : png_frames ) {
+    // convert and add new AVFrame* to vp8_frames
+    AVFrame* vp8_frame = av_frame_alloc();
+    vp8_frame->format = AV_PIX_FMT_YUV420P;
+    vp8_frame->width = ::VEN::g_out_wrapper->get_width();
+    vp8_frame->height = ::VEN::g_out_wrapper->get_height();
+    av_frame_get_buffer( vp8_frame, 0 );
+
+    sws_scale( sws, png_frame->data, png_frame->linesize, 0, png_frame->height, vp8_frame->data, vp8_frame->linesize );
+
+    vp8_frames.push_back( vp8_frame );
+  }
+
+  if( sws ) {
+    sws_freeContext( sws );
+  }
+
+  // write vp8 frames
+  if( ::VEN::g_out_wrapper ) {
+    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames );
+  }
+
+  // cleanup
+  for( uint64_t i = 0; i < png_frames.size(); i++ ) {
+    av_frame_free( &png_frames[i] );
+  }
+  for( uint64_t i = 0; i < vp8_frames.size(); i++ ) {
+    av_frame_free( &vp8_frames[i] );
+  }
+  png_frames.clear();
+  vp8_frames.clear();
+
+  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
+  return true;
+}
+
+bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height ) {
+  printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length, width, height ) );
+
+  ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
+
+  // get png frames
+  std::vector< AVFrame* > png_frames;
+  input.read_raw_bytes( bytes, length, width, height, png_frames );
 
   SwsContext* sws = nullptr;
   if( png_frames.size() > 0 ) {

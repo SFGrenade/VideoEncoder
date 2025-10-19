@@ -29,7 +29,7 @@ InputSequenceWrapper::~InputSequenceWrapper() {
   // cleanup
 }
 
-bool InputSequenceWrapper::read_png_bytes( std::vector< uint8_t > in_bytes, std::vector< AVFrame* >& out_frames ) {
+bool InputSequenceWrapper::read_png_bytes( uint8_t const* in_bytes, uint64_t in_bytes_size, std::vector< AVFrame* >& out_frames ) {
   int avret;
 
   uint8_t* av_buffer = nullptr;
@@ -52,17 +52,18 @@ bool InputSequenceWrapper::read_png_bytes( std::vector< uint8_t > in_bytes, std:
 
   InputSequenceWrapper::_avio_read_pos = 0;
 
+  std::pair< uint8_t const*, uint64_t > in_data_pair{ in_bytes, in_bytes_size };
   // get custom IO context
   AVIOContext* avio_ctx = avio_alloc_context(
       av_buffer,
       av_buffer_size,
       0,
-      reinterpret_cast< void* >( &in_bytes ),
+      reinterpret_cast< void* >( &in_data_pair ),
       []( void* opaque, uint8_t* buf, int buf_size ) -> int {
-        auto& bytes = *reinterpret_cast< std::vector< uint8_t >* >( opaque );
-        int remaining = int( bytes.size() - InputSequenceWrapper::_avio_read_pos );
+        auto& bytes = *reinterpret_cast< std::pair< uint8_t const*, uint64_t >* >( opaque );
+        int remaining = int( bytes.second - InputSequenceWrapper::_avio_read_pos );
         int to_copy = FFMIN( buf_size, remaining );
-        memcpy( buf, bytes.data() + InputSequenceWrapper::_avio_read_pos, to_copy );
+        memcpy( buf, bytes.first + InputSequenceWrapper::_avio_read_pos, to_copy );
         InputSequenceWrapper::_avio_read_pos += to_copy;
         return to_copy;
       },
@@ -224,6 +225,43 @@ bool InputSequenceWrapper::read_png_bytes( std::vector< uint8_t > in_bytes, std:
   avformat_close_input( &_fmt_ctx );
   av_free( avio_ctx->buffer );
   avio_context_free( &avio_ctx );
+  return !out_frames.empty();
+}
+
+bool InputSequenceWrapper::read_raw_bytes( uint8_t const* in_bytes, uint64_t in_bytes_size, int width, int height, std::vector< AVFrame* >& out_frames ) {
+  int avret;
+
+  AVFrame* frame = av_frame_alloc();
+  if( !frame ) {
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - frame is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__ ) );
+    return false;
+  }
+
+  frame->format = AV_PIX_FMT_RGB24;
+  frame->width = width;
+  frame->height = height;
+
+  avret = av_frame_get_buffer( frame, 0 );
+  if( avret != 0 ) {
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - av_frame_get_buffer returned {:d}: {:s}!",
+                              static_cast< void* >( this ),
+                              __FUNCTION__,
+                              __LINE__,
+                              avret,
+                              get_ffmpeg_error_string( avret ) ) );
+    av_frame_free( &frame );
+    return false;
+  }
+
+  // Copy raw pixel data (RGB24)
+  int rgb_stride = width * 3;
+  for( int y = 0; y < height; ++y ) {
+    // source texture is upside down
+    memcpy( frame->data[0] + ( y * frame->linesize[0] ), in_bytes + ( ( height - y - 1 ) * rgb_stride ), rgb_stride );
+  }
+
+  out_frames.push_back( frame );
+
   return !out_frames.empty();
 }
 
