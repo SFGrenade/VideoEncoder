@@ -21,10 +21,7 @@ public class VideoEncoder : Mod
 
     // apparently a reference is needed for no crashes
     private static NativeWrapper.LogCallback _callbackDelegate;
-
-    private Camera screenshotCamera = null;
-    private ScreenshotMb screenshotter = null;
-    private RenderTexture activeRenderTexture = null;
+    private static GameObject customCameraObj = null;
 
     public VideoEncoder() : base("Video Encoder")
     {
@@ -36,13 +33,14 @@ public class VideoEncoder : Mod
 
         _callbackDelegate = DebugLog;
         NativeWrapper.InitLibrary(_dir, Application.persistentDataPath, Marshal.GetFunctionPointerForDelegate(_callbackDelegate));
+
+        CreateCameraObject();
     }
 
     public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
     {
         DebugLog("Initializing...");
 
-        ModHooks.ApplicationQuitHook += () => { NativeWrapper.DeinitLibrary(); };
         RegisterCallbacks();
 
         DebugLog("Initialized!");
@@ -50,43 +48,28 @@ public class VideoEncoder : Mod
 
     private void RegisterCallbacks()
     {
-        On.GameCameras.Awake += On_GameCameras_Awake;
-        On.GameCameras.OnDestroy += On_GameCameras_OnDestroy;
-        if (GameCameras.instance != null)
+        ModHooks.ApplicationQuitHook += () =>
         {
-            On_GameCameras_Awake(_ => { }, GameCameras.instance);
-        }
+            // make sure the current recording stops
+            customCameraObj.GetComponent<ScreenshotMb>().CleanupRenderTexture();
+            NativeWrapper.DeinitLibrary();
+        };
     }
 
-    private void On_GameCameras_Awake(On.GameCameras.orig_Awake orig, GameCameras self)
+    private void CreateCameraObject()
     {
-        orig(self);
-
-        GameObject customCameraObj = new GameObject("TEST THING; DON'T REMOVE");
+        customCameraObj = new GameObject("TEST THING; DON'T REMOVE");
         UObject.DontDestroyOnLoad(customCameraObj);
-        customCameraObj.transform.position = self.mainCamera.transform.position;
-        customCameraObj.transform.SetParent(self.mainCamera.transform, true);
 
-        screenshotCamera = customCameraObj.GetOrAddComponent<Camera>();
-        screenshotCamera.CopyFrom(self.mainCamera);
+        Camera screenshotCamera = customCameraObj.GetOrAddComponent<Camera>();
+        screenshotCamera.CopyFrom(GameCameras.instance.mainCamera);
 
         screenshotCamera.targetTexture = new RenderTexture(Screen.width, Screen.height, 32, RenderTextureFormat.ARGB32);
-        activeRenderTexture = RenderTexture.active;
         RenderTexture.active = screenshotCamera.targetTexture;
 
-        screenshotter = customCameraObj.GetOrAddComponent<ScreenshotMb>();
+        ScreenshotMb screenshotter = customCameraObj.GetOrAddComponent<ScreenshotMb>();
         screenshotter.camera = screenshotCamera;
         screenshotter.dir = _dir;
-    }
-
-    private void On_GameCameras_OnDestroy(On.GameCameras.orig_OnDestroy orig, GameCameras self)
-    {
-        orig(self);
-        UObject.Destroy(screenshotCamera.gameObject);
-        // screenshotCamera.targetTexture = null;
-        // RenderTexture.active = activeRenderTexture;
-        // UObject.DestroyImmediate(screenshotter);
-        // UObject.DestroyImmediate(screenshotCamera);
     }
 
     internal static void DebugLog(string message)

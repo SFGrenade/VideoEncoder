@@ -13,12 +13,31 @@ public class ScreenshotMb : MonoBehaviour
     public string dir;
     public Camera camera;
 
+    private bool _setupDone = false;
     private bool _shouldTakeScreenshots = false;
     private bool _doTakeScreenshots = false;
+    private double _startOfSequence = 0.0;
 
     [UsedImplicitly]
     private void Update()
     {
+        if (!_setupDone && GameCameras.instance != null && GameCameras.instance.mainCamera != null)
+        {
+            _setupDone = true;
+            RenderTexture prevTarget = GetComponent<Camera>().targetTexture; 
+            GetComponent<Camera>().CopyFrom(GameCameras.instance.mainCamera);
+            GetComponent<Camera>().targetTexture = prevTarget; 
+        }
+
+        if (HeroController.instance != null)
+        {
+            transform.position = new Vector3(HeroController.instance.transform.position.x, HeroController.instance.transform.position.y, -38.1f);
+        }
+        else if (GameCameras.instance != null && GameCameras.instance.mainCamera != null)
+        {
+            transform.position = new Vector3(GameCameras.instance.mainCamera.transform.position.x, GameCameras.instance.mainCamera.transform.position.y, -38.1f);
+        }
+
         if (Input.GetKeyDown(KeyCode.F12))
         {
             ToggleRecording();
@@ -51,15 +70,19 @@ public class ScreenshotMb : MonoBehaviour
         }
     }
 
-    private void PrepareRenderTexture()
+    internal void PrepareRenderTexture()
     {
+        if (!(!_doTakeScreenshots && _shouldTakeScreenshots))
+            return;
         if (!NativeWrapper.StartNewSequence(camera.targetTexture.width, camera.targetTexture.height))
             return;
+        _startOfSequence = Time.realtimeSinceStartup;
         _doTakeScreenshots = true;
     }
 
     private void DoScreenshot(RenderTexture textureToSave)
     {
+        double now = Time.realtimeSinceStartup;
         AsyncGPUReadback.Request(textureToSave, 0, TextureFormat.RGB24, request =>
         {
             if (request.hasError || !_doTakeScreenshots)
@@ -70,14 +93,16 @@ public class ScreenshotMb : MonoBehaviour
             {
                 fixed (byte* ptr = data)
                 {
-                    NativeWrapper.SendRawBytes((IntPtr)ptr, data.Length, textureToSave.width, textureToSave.height);
+                    NativeWrapper.SendRawBytes((IntPtr)ptr, data.Length, textureToSave.width, textureToSave.height, now - _startOfSequence);
                 }
             }
         });
     }
 
-    private void CleanupRenderTexture()
+    internal void CleanupRenderTexture()
     {
+        if (!(_doTakeScreenshots && !_shouldTakeScreenshots))
+            return;
         if (!NativeWrapper.StopSequence())
             return;
         _doTakeScreenshots = false;
