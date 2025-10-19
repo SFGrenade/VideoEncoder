@@ -10,9 +10,6 @@
 #include "_ffmpeg.h"
 #include "common.h"
 
-void _SignalCallback( int const sigNum );
-int _RegisterSignalCallbacks();
-
 #if defined( CM_Windows )
 #elif defined( CM_MacOS )
 #elif defined( CM_Linux )
@@ -68,11 +65,11 @@ static OutputSequenceWrapper* g_out_wrapper = nullptr;
 }  // namespace VEN
 
 extern "C" {
-EXPORT bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback );
-EXPORT bool Deinit();
-EXPORT bool StartNewSequence( int32_t width, int32_t height );
-EXPORT bool SendPngBytes( uint8_t const* bytes, int32_t length );
-EXPORT bool StopSequence();
+EXPORT bool CDECL Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback );
+EXPORT bool CDECL Deinit();
+EXPORT bool CDECL StartNewSequence( int32_t width, int32_t height );
+EXPORT bool CDECL SendPngBytes( uint8_t const* bytes, int32_t length );
+EXPORT bool CDECL StopSequence();
 }
 
 #endif  // VIDEOENCODERNATIVE_MAIN_H_

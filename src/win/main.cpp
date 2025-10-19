@@ -11,11 +11,6 @@ bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callba
   setCallback( logging_callback );
   printInFile( fmt::format( "{:s}:{:d} - Initializing library with ( '{:s}', '{:s}' )", __FUNCTION__, __LINE__, mod_dir, save_dir ) );
 
-  if( _RegisterSignalCallbacks() <= 0 ) {
-    printInFile( fmt::format( "{:s}:{:d} - Error registering signal callbacks!", __FUNCTION__, __LINE__ ) );
-    return false;
-  }
-
   av_log_set_level( AV_LOG_ERROR );
 
   printInFile( fmt::format( "{:s}:{:d} - Library initialized!", __FUNCTION__, __LINE__ ) );

@@ -33,7 +33,7 @@ end
 --add_requireconfs( "*", { configs = { shared = false } } )
 
 add_requires( "fmt", { alias = "fmt" } )
-add_requireconfs( "fmt", { configs = { header_only = true } } )
+add_requireconfs( "fmt", { system = false, configs = { header_only = true } } )
 
 target( "VideoEncoderNative" )
     set_kind( "shared" )
@@ -76,7 +76,7 @@ for _, name in ipairs( ffmpeg_all_deps ) do
 end
 
 --add_requireconfs( "ffmpeg", { configs = { shared = false, features = { "all" } } } )
-add_requireconfs( "ffmpeg", { configs = { shared = false, features = { "avcodec", "avformat", "vpx", "zlib" } } } )
+add_requireconfs( "ffmpeg", { system = false, configs = { shared = false, features = { "avcodec", "avformat", "vpx", "zlib" } } } )
 
 target( "ffmpeg-helper" )
     set_kind( "phony" )
