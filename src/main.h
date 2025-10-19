@@ -55,10 +55,12 @@ class OutputSequenceWrapper {
   AVCodec const* _codec = nullptr;
   int32_t _width = 0;
   int32_t _height = 0;
+  uint64_t _frame_counter = 0;
   std::filesystem::path _file_path;
 
   AVCodecContext* _codec_ctx = nullptr;
   AVFormatContext* _fmt_ctx = nullptr;
+  AVStream* _stream = nullptr;
 };
 
 static OutputSequenceWrapper* g_out_wrapper = nullptr;

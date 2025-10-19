@@ -270,12 +270,14 @@ OutputSequenceWrapper::OutputSequenceWrapper( AVCodecID codec, int32_t width, in
     throw std::runtime_error( "avformat_alloc_output_context2 error" );
   }
 
-  AVStream* stream = avformat_new_stream( _fmt_ctx, _codec );
-  if( !stream ) {
-    printInFile( fmt::format( "{:p}:{:s}:{:d} - stream is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__ ) );
-    throw std::runtime_error( "stream is nullptr" );
+  _stream = avformat_new_stream( _fmt_ctx, _codec );
+  if( !_stream ) {
+    printInFile( fmt::format( "{:p}:{:s}:{:d} - _stream is nullptr!", static_cast< void* >( this ), __FUNCTION__, __LINE__ ) );
+    throw std::runtime_error( "_stream is nullptr" );
   }
-  avret = avcodec_parameters_from_context( stream->codecpar, _codec_ctx );
+  _stream->time_base = _codec_ctx->time_base;
+  _stream->r_frame_rate = _codec_ctx->framerate;
+  avret = avcodec_parameters_from_context( _stream->codecpar, _codec_ctx );
   if( 0 > avret ) {
     printInFile( fmt::format( "{:p}:{:s}:{:d} - avcodec_parameters_from_context returned {:d}: {:s}!",
                               static_cast< void* >( this ),
@@ -326,10 +328,13 @@ bool OutputSequenceWrapper::write_vp8_frames( std::vector< AVFrame* > const& fra
   AVPacket* pkt = av_packet_alloc();
 
   for( AVFrame* frame : frames ) {
+    frame->pts = _frame_counter++;
     if( avcodec_send_frame( _codec_ctx, frame ) < 0 )
       continue;
 
     while( avcodec_receive_packet( _codec_ctx, pkt ) == 0 ) {
+      av_packet_rescale_ts( pkt, _codec_ctx->time_base, _stream->time_base );
+      pkt->stream_index = _stream->index;
       av_interleaved_write_frame( _fmt_ctx, pkt );
       av_packet_unref( pkt );
     }
