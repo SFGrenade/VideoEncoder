@@ -282,9 +282,9 @@ OutputSequenceWrapper::OutputSequenceWrapper( AVCodecID codec, int32_t width, in
   _codec_ctx->width = _width;
   _codec_ctx->height = _height;
   _codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-  _codec_ctx->time_base = AVRational{ 1, 50 };  // sure why not
-  _codec_ctx->framerate = AVRational{ 50, 1 };  // sure why not
-  _codec_ctx->bit_rate = 1'000'000;             // sure why not
+  _codec_ctx->time_base = AVRational{ 1, 1000 };  // sure why not
+  _codec_ctx->framerate = AVRational{ 1000, 1 };  // sure why not
+  _codec_ctx->bit_rate = 1'000'000;               // sure why not
 
   AVDictionary* opts = nullptr;
   av_dict_set( &opts, "deadline", "realtime", 0 );
@@ -367,13 +367,13 @@ OutputSequenceWrapper::~OutputSequenceWrapper() {
   avcodec_free_context( &_codec_ctx );
 }
 
-bool OutputSequenceWrapper::write_vp8_frames( std::vector< AVFrame* > const& frames ) {
+bool OutputSequenceWrapper::write_vp8_frames( std::vector< AVFrame* > const& frames, double timestamp ) {
   int avret;
 
   AVPacket* pkt = av_packet_alloc();
 
   for( AVFrame* frame : frames ) {
-    frame->pts = _frame_counter++;
+    frame->pts = static_cast< int64_t >( timestamp * _codec_ctx->time_base.den / _codec_ctx->time_base.num );
     if( avcodec_send_frame( _codec_ctx, frame ) < 0 )
       continue;
 

@@ -1,13 +1,11 @@
 #include "main.h"
 
-#include <chrono>
 #include <filesystem>
 
 #include "_ffmpeg.h"
 #include "common.h"
 
 bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback ) {
-  ::VEN::g_start_time = std::chrono::high_resolution_clock::now();
   ::VEN::g_mod_dir = std::filesystem::path( mod_dir );
   ::VEN::g_save_dir = std::filesystem::path( save_dir );
   setCallback( logging_callback );
@@ -88,7 +86,7 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
 
   // write vp8 frames
   if( ::VEN::g_out_wrapper ) {
-    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames );
+    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames, ::VEN::g_out_wrapper->_frame_counter++ );
   }
 
   // cleanup
@@ -105,10 +103,9 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   return true;
 }
 
-bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height ) {
-  // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length, width, height ) );
-  // std::chrono::duration< double > seconds_since_init = std::chrono::high_resolution_clock::now() - ::VEN::g_start_time;
-  // printInFile( fmt::format( "{:s} - now is {}", __FUNCTION__, seconds_since_init.count() ) );
+bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp ) {
+  // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d}, timestamp={:f} )", __FUNCTION__, static_cast< void const* >( bytes ),
+  // length, width, height, timestamp ) );
 
   ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
@@ -152,7 +149,7 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height )
 
   // write vp8 frames
   if( ::VEN::g_out_wrapper ) {
-    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames );
+    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames, timestamp );
   }
 
   // cleanup

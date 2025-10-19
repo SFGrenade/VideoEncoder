@@ -3,7 +3,6 @@
 
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <vector>
@@ -20,7 +19,6 @@ namespace VEN {
 static std::filesystem::path g_mod_dir;
 static std::filesystem::path g_save_dir;
 static std::atomic_uint64_t g_sequence_index = 0;
-static std::chrono::high_resolution_clock::time_point g_start_time;
 
 class InputSequenceWrapper {
   public:
@@ -46,16 +44,17 @@ class OutputSequenceWrapper {
   OutputSequenceWrapper( OutputSequenceWrapper& ) = delete;
   ~OutputSequenceWrapper();
 
-  bool write_vp8_frames( std::vector< AVFrame* > const& frames );
+  bool write_vp8_frames( std::vector< AVFrame* > const& frames, double timestamp );
 
   int32_t get_width() const;
   int32_t get_height() const;
+
+  uint64_t _frame_counter = 0;
 
   private:
   AVCodec const* _codec = nullptr;
   int32_t _width = 0;
   int32_t _height = 0;
-  uint64_t _frame_counter = 0;
   std::filesystem::path _file_path;
 
   AVCodecContext* _codec_ctx = nullptr;
@@ -72,7 +71,7 @@ EXPORT bool CDECL Init( char const* mod_dir, char const* save_dir, LogCallback l
 EXPORT bool CDECL Deinit();
 EXPORT bool CDECL StartNewSequence( int32_t width, int32_t height );
 EXPORT bool CDECL SendPngBytes( uint8_t const* bytes, int32_t length );
-EXPORT bool CDECL SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height );
+EXPORT bool CDECL SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
 EXPORT bool CDECL StopSequence();
 }
 
