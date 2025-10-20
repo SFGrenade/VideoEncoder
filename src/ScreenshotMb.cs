@@ -1,10 +1,9 @@
 ﻿using System;
-using System.IO;
-using System.Security.Cryptography;
 using JetBrains.Annotations;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UObject = UnityEngine.Object;
 
 namespace VideoEncoder;
 
@@ -24,9 +23,9 @@ public class ScreenshotMb : MonoBehaviour
         if (!_setupDone && GameCameras.instance != null && GameCameras.instance.mainCamera != null)
         {
             _setupDone = true;
-            RenderTexture prevTarget = GetComponent<Camera>().targetTexture; 
+            RenderTexture prevTarget = GetComponent<Camera>().targetTexture;
             GetComponent<Camera>().CopyFrom(GameCameras.instance.mainCamera);
-            GetComponent<Camera>().targetTexture = prevTarget; 
+            GetComponent<Camera>().targetTexture = prevTarget;
         }
 
         if (HeroController.instance != null)
@@ -49,6 +48,9 @@ public class ScreenshotMb : MonoBehaviour
         _shouldTakeScreenshots = !_shouldTakeScreenshots;
     }
 
+    const int MaxInFlight = 3;
+    int inFlight = 0;
+
     [UsedImplicitly]
     private void OnRenderImage(RenderTexture src, RenderTexture dest)
     {
@@ -57,7 +59,23 @@ public class ScreenshotMb : MonoBehaviour
 
         if (_doTakeScreenshots)
         {
-            DoScreenshot(dest);
+            if (inFlight < MaxInFlight)
+            {
+                double now = Time.realtimeSinceStartup;
+                AsyncGPUReadback.Request(src, 0, TextureFormat.RGB24, request =>
+                {
+                    inFlight--;
+                    if (request.hasError || !_doTakeScreenshots)
+                        return;
+
+                    NativeArray<byte> data = request.GetData<byte>();
+                    unsafe
+                    {
+                        NativeWrapper.SendRawBytes((IntPtr)data.GetUnsafePtr(), data.Length, src.width, src.height, now - _startOfSequence);
+                    }
+                });
+                inFlight++;
+            }
         }
 
         if (_doTakeScreenshots && !_shouldTakeScreenshots)
@@ -78,25 +96,6 @@ public class ScreenshotMb : MonoBehaviour
             return;
         _startOfSequence = Time.realtimeSinceStartup;
         _doTakeScreenshots = true;
-    }
-
-    private void DoScreenshot(RenderTexture textureToSave)
-    {
-        double now = Time.realtimeSinceStartup;
-        AsyncGPUReadback.Request(textureToSave, 0, TextureFormat.RGB24, request =>
-        {
-            if (request.hasError || !_doTakeScreenshots)
-                return;
-
-            byte[] data = request.GetData<byte>().ToArray();
-            unsafe
-            {
-                fixed (byte* ptr = data)
-                {
-                    NativeWrapper.SendRawBytes((IntPtr)ptr, data.Length, textureToSave.width, textureToSave.height, now - _startOfSequence);
-                }
-            }
-        });
     }
 
     internal void CleanupRenderTexture()
