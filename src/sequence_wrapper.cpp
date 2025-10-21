@@ -11,8 +11,6 @@ std::string get_ffmpeg_error_string( int e ) {
   return std::string( av_make_error_string( buffer.data(), AV_ERROR_MAX_STRING_SIZE, e ) );
 }
 
-namespace VEN {
-
 uint64_t InputSequenceWrapper::_avio_read_pos = 0;
 
 InputSequenceWrapper::InputSequenceWrapper( AVCodecID codec ) {
@@ -286,14 +284,13 @@ OutputSequenceWrapper::OutputSequenceWrapper( AVCodecID codec, int32_t width, in
   _codec_ctx->framerate = AVRational{ 1000, 1 };  // sure why not
   _codec_ctx->bit_rate = 1'000'000;               // sure why not
 
-  AVDictionary* opts = nullptr;
-  av_dict_set( &opts, "deadline", "realtime", 0 );
-  av_dict_set( &opts, "cpu-used", "16", 0 );
-  av_dict_set( &opts, "speed", "16", 0 );
-  av_dict_set( &opts, "quality", "realtime", 0 );
-  av_dict_set( &opts, "threads", "4", 0 );
+  AVDictionary* codec_opts = nullptr;
+  AVDictionary** codec_opts_ptr = &codec_opts;
+  for( auto const& pair : ::GS::codec_options ) {
+    av_dict_set( codec_opts_ptr, pair.first.c_str(), pair.second.c_str(), 0 );
+  }
 
-  avret = avcodec_open2( _codec_ctx, _codec, &opts );
+  avret = avcodec_open2( _codec_ctx, _codec, codec_opts_ptr );
   if( 0 > avret ) {
     printInFile( fmt::format( "{:p}:{:s}:{:d} - avformat_alloc_output_context2 returned {:d}: {:s}!",
                               static_cast< void* >( this ),
@@ -338,7 +335,17 @@ OutputSequenceWrapper::OutputSequenceWrapper( AVCodecID codec, int32_t width, in
       throw std::runtime_error( "Could not open output file" );
   }
 
-  if( avformat_write_header( _fmt_ctx, nullptr ) < 0 )
+  AVDictionary* media_opts = nullptr;
+  AVDictionary** media_opts_ptr = &media_opts;
+  for( auto const& pair : ::GS::media_options ) {
+    av_dict_set( media_opts_ptr, pair.first.c_str(), pair.second.c_str(), 0 );
+  }
+  if( ::GS::media_options.size() <= 0 ) {
+    // give nullptr to the method when no options used
+    media_opts_ptr = nullptr;
+  }
+
+  if( avformat_write_header( _fmt_ctx, media_opts_ptr ) < 0 )
     throw std::runtime_error( "Failed to write header" );
 }
 
@@ -397,5 +404,3 @@ int32_t OutputSequenceWrapper::get_width() const {
 int32_t OutputSequenceWrapper::get_height() const {
   return _height;
 }
-
-}  // namespace VEN

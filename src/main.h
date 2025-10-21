@@ -5,6 +5,8 @@
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
+#include <map>
+#include <string>
 #include <vector>
 
 #include "_ffmpeg.h"
@@ -14,11 +16,6 @@
 #elif defined( CM_MacOS )
 #elif defined( CM_Linux )
 #endif
-
-namespace VEN {
-static std::filesystem::path g_mod_dir;
-static std::filesystem::path g_save_dir;
-static std::atomic_uint64_t g_sequence_index = 0;
 
 class InputSequenceWrapper {
   public:
@@ -62,12 +59,22 @@ class OutputSequenceWrapper {
   AVStream* _stream = nullptr;
 };
 
-static OutputSequenceWrapper* g_out_wrapper = nullptr;
-
-}  // namespace VEN
+class GS {
+  public:
+  static std::filesystem::path mod_dir;
+  static std::filesystem::path save_dir;
+  static std::atomic_uint64_t sequence_index;
+  static std::string file_extension;
+  static std::map<std::string, std::string> codec_options;
+  static std::map<std::string, std::string> media_options;
+  static OutputSequenceWrapper* out_wrapper;
+};
 
 extern "C" {
 EXPORT bool CDECL Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback );
+EXPORT bool CDECL SetFileExtension( char const* file_extension );
+EXPORT bool CDECL SetCodecOption( char const* key, char const* value );
+EXPORT bool CDECL SetMediaOption( char const* key, char const* value );
 EXPORT bool CDECL Deinit();
 EXPORT bool CDECL StartNewSequence( int32_t width, int32_t height );
 EXPORT bool CDECL SendPngBytes( uint8_t const* bytes, int32_t length );

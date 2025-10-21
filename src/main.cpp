@@ -6,15 +6,46 @@
 #include "common.h"
 
 bool Init( char const* mod_dir, char const* save_dir, LogCallback logging_callback ) {
-  ::VEN::g_mod_dir = std::filesystem::path( mod_dir );
-  ::VEN::g_save_dir = std::filesystem::path( save_dir );
+  ::GS::mod_dir = std::filesystem::path( mod_dir );
+  ::GS::save_dir = std::filesystem::path( save_dir );
   setCallback( logging_callback );
-  printInFile( fmt::format( "{:s}:{:d} - Initializing library with ( '{:s}', '{:s}' )", __FUNCTION__, __LINE__, mod_dir, save_dir ) );
+  printInFile( fmt::format( "{:s}:{:d} - Initializing library with ( {:?}, {:?} )", __FUNCTION__, __LINE__, mod_dir, save_dir ) );
 
   av_log_set_level( AV_LOG_ERROR );
 
   printInFile( fmt::format( "{:s}:{:d} - Library initialized!", __FUNCTION__, __LINE__ ) );
   return true;
+}
+
+bool SetFileExtension( char const* file_extension ) {
+  printInFile( fmt::format( "{:s}( file_extension={:?} )", __FUNCTION__, file_extension ) );
+
+  ::GS::file_extension = std::string( file_extension );
+
+  printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
+  return true;
+}
+
+bool SetCodecOption( char const* key, char const* value ) {
+  printInFile( fmt::format( "{:s}( key={:?}, value={:?} )", __FUNCTION__, key, value ) );
+
+  std::string keyStr(key);
+  std::string valueStr(value);
+  auto ret = ::GS::codec_options.try_emplace(keyStr, valueStr);
+
+  printInFile( fmt::format( "{:s}:{:d}~ => {}", __FUNCTION__, __LINE__, ret.second ) );
+  return ret.second;
+}
+
+bool SetMediaOption( char const* key, char const* value ) {
+  printInFile( fmt::format( "{:s}( key={:?}, value={:?} )", __FUNCTION__, key, value ) );
+
+  std::string keyStr(key);
+  std::string valueStr(value);
+  auto ret = ::GS::media_options.try_emplace(keyStr, valueStr);
+
+  printInFile( fmt::format( "{:s}:{:d}~ => {}", __FUNCTION__, __LINE__, ret.second ) );
+  return ret.second;
 }
 
 bool Deinit() {
@@ -26,16 +57,17 @@ bool Deinit() {
 
 bool StartNewSequence( int32_t width, int32_t height ) {
   printInFile( fmt::format( "{:s}( width={:d}, height={:d} )", __FUNCTION__, width, height ) );
-  std::filesystem::path output_filename = ::VEN::g_mod_dir / ( std::to_string( ::VEN::g_sequence_index ) + std::string( ".mkv" ) );
-  ::VEN::g_sequence_index = ::VEN::g_sequence_index + 1;
+  // todo: fixme: change how the name is generated
+  std::filesystem::path output_filename = ::GS::mod_dir / fmt::format( "{:d}.{:s}", ::GS::sequence_index, ::GS::file_extension );
+  ::GS::sequence_index++;
 
   printInFile( fmt::format( "Opening new sequence: {:s}", output_filename.string() ) );
 
-  if( ::VEN::g_out_wrapper ) {
-    delete ::VEN::g_out_wrapper;
-    ::VEN::g_out_wrapper = nullptr;
+  if( ::GS::out_wrapper ) {
+    delete ::GS::out_wrapper;
+    ::GS::out_wrapper = nullptr;
   }
-  ::VEN::g_out_wrapper = new ::VEN::OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
+  ::GS::out_wrapper = new OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
 
   printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
@@ -44,7 +76,7 @@ bool StartNewSequence( int32_t width, int32_t height ) {
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
 
-  ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
+  InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
   // get png frames
   std::vector< AVFrame* > png_frames;
@@ -55,8 +87,8 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
     sws = sws_getContext( png_frames[0]->width,
                           png_frames[0]->height,
                           (AVPixelFormat)png_frames[0]->format,
-                          ::VEN::g_out_wrapper->get_width(),
-                          ::VEN::g_out_wrapper->get_height(),
+                          ::GS::out_wrapper->get_width(),
+                          ::GS::out_wrapper->get_height(),
                           AV_PIX_FMT_YUV420P,
                           SWS_BILINEAR,
                           nullptr,
@@ -71,8 +103,8 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
     // convert and add new AVFrame* to vp8_frames
     AVFrame* vp8_frame = av_frame_alloc();
     vp8_frame->format = AV_PIX_FMT_YUV420P;
-    vp8_frame->width = ::VEN::g_out_wrapper->get_width();
-    vp8_frame->height = ::VEN::g_out_wrapper->get_height();
+    vp8_frame->width = ::GS::out_wrapper->get_width();
+    vp8_frame->height = ::GS::out_wrapper->get_height();
     av_frame_get_buffer( vp8_frame, 0 );
 
     sws_scale( sws, png_frame->data, png_frame->linesize, 0, png_frame->height, vp8_frame->data, vp8_frame->linesize );
@@ -85,8 +117,8 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   }
 
   // write vp8 frames
-  if( ::VEN::g_out_wrapper ) {
-    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames, ::VEN::g_out_wrapper->_frame_counter++ );
+  if( ::GS::out_wrapper ) {
+    ::GS::out_wrapper->write_vp8_frames( vp8_frames, ::GS::out_wrapper->_frame_counter++ );
   }
 
   // cleanup
@@ -107,7 +139,7 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, 
   // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d}, timestamp={:f} )", __FUNCTION__, static_cast< void const* >( bytes ),
   // length, width, height, timestamp ) );
 
-  ::VEN::InputSequenceWrapper input( AV_CODEC_ID_PNG );
+  InputSequenceWrapper input( AV_CODEC_ID_PNG );
 
   // get png frames
   std::vector< AVFrame* > png_frames;
@@ -118,8 +150,8 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, 
     sws = sws_getContext( png_frames[0]->width,
                           png_frames[0]->height,
                           (AVPixelFormat)png_frames[0]->format,
-                          ::VEN::g_out_wrapper->get_width(),
-                          ::VEN::g_out_wrapper->get_height(),
+                          ::GS::out_wrapper->get_width(),
+                          ::GS::out_wrapper->get_height(),
                           AV_PIX_FMT_YUV420P,
                           SWS_BILINEAR,
                           nullptr,
@@ -134,8 +166,8 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, 
     // convert and add new AVFrame* to vp8_frames
     AVFrame* vp8_frame = av_frame_alloc();
     vp8_frame->format = AV_PIX_FMT_YUV420P;
-    vp8_frame->width = ::VEN::g_out_wrapper->get_width();
-    vp8_frame->height = ::VEN::g_out_wrapper->get_height();
+    vp8_frame->width = ::GS::out_wrapper->get_width();
+    vp8_frame->height = ::GS::out_wrapper->get_height();
     av_frame_get_buffer( vp8_frame, 0 );
 
     sws_scale( sws, png_frame->data, png_frame->linesize, 0, png_frame->height, vp8_frame->data, vp8_frame->linesize );
@@ -148,8 +180,8 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, 
   }
 
   // write vp8 frames
-  if( ::VEN::g_out_wrapper ) {
-    ::VEN::g_out_wrapper->write_vp8_frames( vp8_frames, timestamp );
+  if( ::GS::out_wrapper ) {
+    ::GS::out_wrapper->write_vp8_frames( vp8_frames, timestamp );
   }
 
   // cleanup
@@ -169,9 +201,9 @@ bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, 
 bool StopSequence() {
   printInFile( fmt::format( "{:s}()", __FUNCTION__ ) );
 
-  if( ::VEN::g_out_wrapper ) {
-    delete ::VEN::g_out_wrapper;
-    ::VEN::g_out_wrapper = nullptr;
+  if( ::GS::out_wrapper ) {
+    delete ::GS::out_wrapper;
+    ::GS::out_wrapper = nullptr;
   }
 
   printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
