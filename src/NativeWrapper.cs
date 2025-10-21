@@ -37,6 +37,87 @@ public static class NativeWrapper
         };
     }
 
+    [DllImport("VideoEncoderNative_Linux", EntryPoint = "SetFileExtension", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_Linux_SetFileExtension([MarshalAs(UnmanagedType.LPStr)] string file_extension);
+    private static bool Linux_SetFileExtension_Wrap(string file_extension) => Native_Linux_SetFileExtension(file_extension);
+    [DllImport("VideoEncoderNative_MacOS", EntryPoint = "SetFileExtension", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_MacOS_SetFileExtension([MarshalAs(UnmanagedType.LPStr)] string file_extension);
+    private static bool MacOS_SetFileExtension_Wrap(string file_extension) => Native_MacOS_SetFileExtension(file_extension);
+    [DllImport("VideoEncoderNative_Windows", EntryPoint = "SetFileExtension", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_Windows_SetFileExtension([MarshalAs(UnmanagedType.LPStr)] string file_extension);
+    private static bool Windows_SetFileExtension_Wrap(string file_extension) => Native_Windows_SetFileExtension(file_extension);
+    internal static bool SetFileExtension(string file_extension)
+    {
+        switch (SystemInfo.operatingSystemFamily)
+        {
+            case OperatingSystemFamily.Linux:
+                return Linux_SetFileExtension_Wrap(file_extension);
+            case OperatingSystemFamily.MacOSX:
+                return MacOS_SetFileExtension_Wrap(file_extension);
+            case OperatingSystemFamily.Windows:
+                return Windows_SetFileExtension_Wrap(file_extension);
+            default:
+                return false;
+        };
+    }
+
+    [DllImport("VideoEncoderNative_Linux", EntryPoint = "SetCodecOption", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_Linux_SetCodecOption([MarshalAs(UnmanagedType.LPStr)] string key, [MarshalAs(UnmanagedType.LPStr)] string value);
+    private static bool Linux_SetCodecOption_Wrap(string key, string value) => Native_Linux_SetCodecOption(key, value);
+    [DllImport("VideoEncoderNative_MacOS", EntryPoint = "SetCodecOption", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_MacOS_SetCodecOption([MarshalAs(UnmanagedType.LPStr)] string key, [MarshalAs(UnmanagedType.LPStr)] string value);
+    private static bool MacOS_SetCodecOption_Wrap(string key, string value) => Native_MacOS_SetCodecOption(key, value);
+    [DllImport("VideoEncoderNative_Windows", EntryPoint = "SetCodecOption", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_Windows_SetCodecOption([MarshalAs(UnmanagedType.LPStr)] string key, [MarshalAs(UnmanagedType.LPStr)] string value);
+    private static bool Windows_SetCodecOption_Wrap(string key, string value) => Native_Windows_SetCodecOption(key, value);
+    internal static bool SetCodecOption(string key, string value)
+    {
+        switch (SystemInfo.operatingSystemFamily)
+        {
+            case OperatingSystemFamily.Linux:
+                return Linux_SetCodecOption_Wrap(key, value);
+            case OperatingSystemFamily.MacOSX:
+                return MacOS_SetCodecOption_Wrap(key, value);
+            case OperatingSystemFamily.Windows:
+                return Windows_SetCodecOption_Wrap(key, value);
+            default:
+                return false;
+        };
+    }
+
+    [DllImport("VideoEncoderNative_Linux", EntryPoint = "SetMediaOption", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_Linux_SetMediaOption([MarshalAs(UnmanagedType.LPStr)] string key, [MarshalAs(UnmanagedType.LPStr)] string value);
+    private static bool Linux_SetMediaOption_Wrap(string key, string value) => Native_Linux_SetMediaOption(key, value);
+    [DllImport("VideoEncoderNative_MacOS", EntryPoint = "SetMediaOption", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_MacOS_SetMediaOption([MarshalAs(UnmanagedType.LPStr)] string key, [MarshalAs(UnmanagedType.LPStr)] string value);
+    private static bool MacOS_SetMediaOption_Wrap(string key, string value) => Native_MacOS_SetMediaOption(key, value);
+    [DllImport("VideoEncoderNative_Windows", EntryPoint = "SetMediaOption", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool Native_Windows_SetMediaOption([MarshalAs(UnmanagedType.LPStr)] string key, [MarshalAs(UnmanagedType.LPStr)] string value);
+    private static bool Windows_SetMediaOption_Wrap(string key, string value) => Native_Windows_SetMediaOption(key, value);
+    internal static bool SetMediaOption(string key, string value)
+    {
+        switch (SystemInfo.operatingSystemFamily)
+        {
+            case OperatingSystemFamily.Linux:
+                return Linux_SetMediaOption_Wrap(key, value);
+            case OperatingSystemFamily.MacOSX:
+                return MacOS_SetMediaOption_Wrap(key, value);
+            case OperatingSystemFamily.Windows:
+                return Windows_SetMediaOption_Wrap(key, value);
+            default:
+                return false;
+        };
+    }
+
     [DllImport("VideoEncoderNative_Linux", EntryPoint = "Deinit", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool Native_Linux_Deinit();

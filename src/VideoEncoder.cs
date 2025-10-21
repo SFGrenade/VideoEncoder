@@ -14,7 +14,7 @@ using ULogger = UnityEngine.Debug;
 namespace VideoEncoder;
 
 [UsedImplicitly]
-public class VideoEncoder : Mod
+public class VideoEncoder : Mod, IGlobalSettings<GlobalSettings>
 {
     public override string GetVersion() => Assembly.GetExecutingAssembly().GetName().Version.ToString();
     private static string _dir;
@@ -40,6 +40,16 @@ public class VideoEncoder : Mod
     public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
     {
         DebugLog("Initializing...");
+
+        NativeWrapper.SetFileExtension(GlobalSettings.FileExtension);
+        foreach (KeyValuePair<string, string> pair in GlobalSettings.Codec)
+        {
+            NativeWrapper.SetCodecOption(pair.Key, pair.Value);
+        }
+        foreach (KeyValuePair<string, string> pair in GlobalSettings.Container)
+        {
+            NativeWrapper.SetMediaOption(pair.Key, pair.Value);
+        }
 
         RegisterCallbacks();
 
@@ -83,4 +93,8 @@ public class VideoEncoder : Mod
     {
         DebugLog($"{message}");
     }
+
+    public static GlobalSettings GlobalSettings { get; protected set; } = new GlobalSettings();
+    public void OnLoadGlobal(GlobalSettings s) => GlobalSettings = s;
+    public GlobalSettings OnSaveGlobal() => GlobalSettings;
 }
