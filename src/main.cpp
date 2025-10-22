@@ -29,9 +29,9 @@ bool SetFileExtension( char const* file_extension ) {
 bool SetCodecOption( char const* key, char const* value ) {
   printInFile( fmt::format( "{:s}( key={:?}, value={:?} )", __FUNCTION__, key, value ) );
 
-  std::string keyStr(key);
-  std::string valueStr(value);
-  auto ret = ::GS::codec_options.try_emplace(keyStr, valueStr);
+  std::string keyStr( key );
+  std::string valueStr( value );
+  auto ret = ::GS::codec_options.try_emplace( keyStr, valueStr );
 
   printInFile( fmt::format( "{:s}:{:d}~ => {}", __FUNCTION__, __LINE__, ret.second ) );
   return ret.second;
@@ -40,9 +40,9 @@ bool SetCodecOption( char const* key, char const* value ) {
 bool SetMediaOption( char const* key, char const* value ) {
   printInFile( fmt::format( "{:s}( key={:?}, value={:?} )", __FUNCTION__, key, value ) );
 
-  std::string keyStr(key);
-  std::string valueStr(value);
-  auto ret = ::GS::media_options.try_emplace(keyStr, valueStr);
+  std::string keyStr( key );
+  std::string valueStr( value );
+  auto ret = ::GS::media_options.try_emplace( keyStr, valueStr );
 
   printInFile( fmt::format( "{:s}:{:d}~ => {}", __FUNCTION__, __LINE__, ret.second ) );
   return ret.second;
@@ -50,6 +50,14 @@ bool SetMediaOption( char const* key, char const* value ) {
 
 bool Deinit() {
   printInFile( fmt::format( "{:s}:{:d} - Deinitializing library...", __FUNCTION__, __LINE__ ) );
+
+  while( !::GS::input_threads.empty() ) {
+    std::shared_ptr< InputThread > thread = ::GS::input_threads.front();
+    ::GS::input_threads.pop();
+    if( thread ) {
+      thread.reset();
+    }
+  }
 
   printInFile( fmt::format( "{:s}:{:d} - Library deinitialized!", __FUNCTION__, __LINE__ ) );
   return true;
@@ -63,147 +71,34 @@ bool StartNewSequence( int32_t width, int32_t height ) {
 
   printInFile( fmt::format( "Opening new sequence: {:s}", output_filename.string() ) );
 
-  if( ::GS::out_wrapper ) {
-    delete ::GS::out_wrapper;
-    ::GS::out_wrapper = nullptr;
+  if( !::GS::input_threads.empty() ) {
+    ::GS::input_threads.back()->end_input_thread();
   }
-  ::GS::out_wrapper = new OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
+
+  OutputSequenceWrapper* out_wrapper = new OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
+  ::GS::input_threads.emplace( new InputThread( out_wrapper ) );
 
   printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
-  // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d} )", __FUNCTION__, static_cast< void const* >( bytes ), length ) );
+  ::GS::input_threads.back()->recieve_bytes( bytes, length );
 
-  InputSequenceWrapper input( AV_CODEC_ID_PNG );
-
-  // get png frames
-  std::vector< AVFrame* > png_frames;
-  input.read_png_bytes( bytes, length, png_frames );
-
-  SwsContext* sws = nullptr;
-  if( png_frames.size() > 0 ) {
-    sws = sws_getContext( png_frames[0]->width,
-                          png_frames[0]->height,
-                          (AVPixelFormat)png_frames[0]->format,
-                          ::GS::out_wrapper->get_width(),
-                          ::GS::out_wrapper->get_height(),
-                          AV_PIX_FMT_YUV420P,
-                          SWS_BILINEAR,
-                          nullptr,
-                          nullptr,
-                          nullptr );
-  }
-
-  // convert png frames to vp8 frames
-  std::vector< AVFrame* > vp8_frames;
-  vp8_frames.reserve( png_frames.size() );
-  for( AVFrame* png_frame : png_frames ) {
-    // convert and add new AVFrame* to vp8_frames
-    AVFrame* vp8_frame = av_frame_alloc();
-    vp8_frame->format = AV_PIX_FMT_YUV420P;
-    vp8_frame->width = ::GS::out_wrapper->get_width();
-    vp8_frame->height = ::GS::out_wrapper->get_height();
-    av_frame_get_buffer( vp8_frame, 0 );
-
-    sws_scale( sws, png_frame->data, png_frame->linesize, 0, png_frame->height, vp8_frame->data, vp8_frame->linesize );
-
-    vp8_frames.push_back( vp8_frame );
-  }
-
-  if( sws ) {
-    sws_freeContext( sws );
-  }
-
-  // write vp8 frames
-  if( ::GS::out_wrapper ) {
-    ::GS::out_wrapper->write_vp8_frames( vp8_frames, ::GS::out_wrapper->_frame_counter++ );
-  }
-
-  // cleanup
-  for( uint64_t i = 0; i < png_frames.size(); i++ ) {
-    av_frame_free( &png_frames[i] );
-  }
-  for( uint64_t i = 0; i < vp8_frames.size(); i++ ) {
-    av_frame_free( &vp8_frames[i] );
-  }
-  png_frames.clear();
-  vp8_frames.clear();
-
-  // printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp ) {
-  // printInFile( fmt::format( "{:s}( bytes={:p}, length={:d}, width={:d}, height={:d}, timestamp={:f} )", __FUNCTION__, static_cast< void const* >( bytes ),
-  // length, width, height, timestamp ) );
+  ::GS::input_threads.back()->recieve_bytes( bytes, length, width, height, timestamp );
 
-  InputSequenceWrapper input( AV_CODEC_ID_PNG );
-
-  // get png frames
-  std::vector< AVFrame* > png_frames;
-  input.read_raw_bytes( bytes, length, width, height, png_frames );
-
-  SwsContext* sws = nullptr;
-  if( png_frames.size() > 0 ) {
-    sws = sws_getContext( png_frames[0]->width,
-                          png_frames[0]->height,
-                          (AVPixelFormat)png_frames[0]->format,
-                          ::GS::out_wrapper->get_width(),
-                          ::GS::out_wrapper->get_height(),
-                          AV_PIX_FMT_YUV420P,
-                          SWS_BILINEAR,
-                          nullptr,
-                          nullptr,
-                          nullptr );
-  }
-
-  // convert png frames to vp8 frames
-  std::vector< AVFrame* > vp8_frames;
-  vp8_frames.reserve( png_frames.size() );
-  for( AVFrame* png_frame : png_frames ) {
-    // convert and add new AVFrame* to vp8_frames
-    AVFrame* vp8_frame = av_frame_alloc();
-    vp8_frame->format = AV_PIX_FMT_YUV420P;
-    vp8_frame->width = ::GS::out_wrapper->get_width();
-    vp8_frame->height = ::GS::out_wrapper->get_height();
-    av_frame_get_buffer( vp8_frame, 0 );
-
-    sws_scale( sws, png_frame->data, png_frame->linesize, 0, png_frame->height, vp8_frame->data, vp8_frame->linesize );
-
-    vp8_frames.push_back( vp8_frame );
-  }
-
-  if( sws ) {
-    sws_freeContext( sws );
-  }
-
-  // write vp8 frames
-  if( ::GS::out_wrapper ) {
-    ::GS::out_wrapper->write_vp8_frames( vp8_frames, timestamp );
-  }
-
-  // cleanup
-  for( uint64_t i = 0; i < png_frames.size(); i++ ) {
-    av_frame_free( &png_frames[i] );
-  }
-  for( uint64_t i = 0; i < vp8_frames.size(); i++ ) {
-    av_frame_free( &vp8_frames[i] );
-  }
-  png_frames.clear();
-  vp8_frames.clear();
-
-  // printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
 }
 
 bool StopSequence() {
   printInFile( fmt::format( "{:s}()", __FUNCTION__ ) );
 
-  if( ::GS::out_wrapper ) {
-    delete ::GS::out_wrapper;
-    ::GS::out_wrapper = nullptr;
+  if( ::GS::input_threads.back() ) {
+    ::GS::input_threads.back()->end_input_thread();
   }
 
   printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );

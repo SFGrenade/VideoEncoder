@@ -6,7 +6,11 @@
 #include <cstdint>
 #include <filesystem>
 #include <map>
+#include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "_ffmpeg.h"
@@ -59,15 +63,48 @@ class OutputSequenceWrapper {
   AVStream* _stream = nullptr;
 };
 
+struct InputData {
+  InputData( uint8_t const* bytes, int32_t length );
+  InputData( uint8_t const* bytes, int32_t length, int32_t width, int32_t height, double timestamp );
+
+  std::vector< uint8_t > bytes;
+  int32_t width;
+  int32_t height;
+  double timestamp;
+  bool is_raw;
+};
+
+class InputThread {
+  public:
+  InputThread( OutputSequenceWrapper* out_wrapper );
+  ~InputThread();
+
+  void end_input_thread();
+
+  void recieve_bytes( uint8_t const* bytes, int32_t length );
+  void recieve_bytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
+
+  private:
+  void run( std::stop_token stoken );
+  void process_png_bytes( std::vector< uint8_t > );
+  void process_raw_bytes( std::vector< uint8_t >, int width, int height, double timestamp );
+
+  private:
+  OutputSequenceWrapper* _out_wrapper;
+  std::queue< InputData > _queue;
+  std::jthread _thread;
+  std::mutex _mtx;
+};
+
 class GS {
   public:
   static std::filesystem::path mod_dir;
   static std::filesystem::path save_dir;
   static std::atomic_uint64_t sequence_index;
   static std::string file_extension;
-  static std::map<std::string, std::string> codec_options;
-  static std::map<std::string, std::string> media_options;
-  static OutputSequenceWrapper* out_wrapper;
+  static std::map< std::string, std::string > codec_options;
+  static std::map< std::string, std::string > media_options;
+  static std::queue< std::shared_ptr< InputThread > > input_threads;
 };
 
 extern "C" {
