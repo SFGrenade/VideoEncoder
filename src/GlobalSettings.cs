@@ -6,6 +6,15 @@ namespace VideoEncoder;
 
 public class GlobalSettings
 {
+    public KeyCode StartStopKey = KeyCode.F12;
+    /*
+     * todo: add some kinda display in the top-right corner like:
+     * [not recording] vs [RECORDING!]
+     * {:d} frames in render queue(s)
+     */
+    public bool ShowRecordingUi = true;
+    public bool StartRecordingOnStart = false;
+    public bool CapRecordingToFixedUpdate = false;
     public string FileExtension = "mkv";
 
     public Dictionary<string, string> Codec = new()

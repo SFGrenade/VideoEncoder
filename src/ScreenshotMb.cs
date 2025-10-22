@@ -15,7 +15,14 @@ public class ScreenshotMb : MonoBehaviour
     private bool _setupDone = false;
     private bool _shouldTakeScreenshots = false;
     private bool _doTakeScreenshots = false;
+    private bool _screenShotTimingNow = false;
     private double _startOfSequence = 0.0;
+
+    [UsedImplicitly]
+    private void FixedUpdate()
+    {
+        _screenShotTimingNow = true;
+    }
 
     [UsedImplicitly]
     private void Update()
@@ -26,6 +33,11 @@ public class ScreenshotMb : MonoBehaviour
             RenderTexture prevTarget = GetComponent<Camera>().targetTexture;
             GetComponent<Camera>().CopyFrom(GameCameras.instance.mainCamera);
             GetComponent<Camera>().targetTexture = prevTarget;
+            if (VideoEncoder.GlobalSettings.StartRecordingOnStart)
+            {
+                // toggle recording once setup is done, which is practically at the start and activating the recording
+                ToggleRecording();
+            }
         }
 
         if (HeroController.instance != null)
@@ -37,7 +49,7 @@ public class ScreenshotMb : MonoBehaviour
             transform.position = new Vector3(GameCameras.instance.mainCamera.transform.position.x, GameCameras.instance.mainCamera.transform.position.y, -38.1f);
         }
 
-        if (Input.GetKeyDown(KeyCode.F12))
+        if (Input.GetKeyDown(VideoEncoder.GlobalSettings.StartStopKey))
         {
             ToggleRecording();
         }
@@ -57,7 +69,11 @@ public class ScreenshotMb : MonoBehaviour
         // Read pixels from the source RenderTexture, apply the material, copy the updated results to the destination RenderTexture
         Graphics.Blit(src, dest);
 
-        if (_doTakeScreenshots)
+        if (!_setupDone)
+            return;
+
+        // this is true when _doTakeScreenshots is true and then either CapRecordingToFixedUpdate is false or it also needs _screenShotTimingNow to be true
+        if (_doTakeScreenshots && ((!VideoEncoder.GlobalSettings.CapRecordingToFixedUpdate) || _screenShotTimingNow))
         {
             if (inFlight < MaxInFlight)
             {
@@ -75,6 +91,7 @@ public class ScreenshotMb : MonoBehaviour
                     }
                 });
                 inFlight++;
+                _screenShotTimingNow = false;
             }
         }
 
@@ -90,6 +107,8 @@ public class ScreenshotMb : MonoBehaviour
 
     internal void PrepareRenderTexture()
     {
+        if (!_setupDone)
+            return;
         if (!(!_doTakeScreenshots && _shouldTakeScreenshots))
             return;
         if (!NativeWrapper.StartNewSequence(camera.targetTexture.width, camera.targetTexture.height))
@@ -100,6 +119,8 @@ public class ScreenshotMb : MonoBehaviour
 
     internal void CleanupRenderTexture()
     {
+        if (!_setupDone)
+            return;
         if (!(_doTakeScreenshots && !_shouldTakeScreenshots))
             return;
         if (!NativeWrapper.StopSequence())
