@@ -29,23 +29,19 @@ void InputThread::end_input_thread() {
   _thread.request_stop();
 }
 
-void InputThread::recieve_bytes( uint8_t const* bytes, int32_t length ) {
+void InputThread::receive_bytes( uint8_t const* bytes, int32_t length ) {
   std::lock_guard< std::mutex > guard( _mtx );
   _queue.push( InputData( bytes, length ) );
 }
 
-void InputThread::recieve_bytes( uint8_t const* bytes, int32_t length, int32_t width, int32_t height, double timestamp ) {
+void InputThread::receive_bytes( uint8_t const* bytes, int32_t length, int32_t width, int32_t height, double timestamp ) {
   std::lock_guard< std::mutex > guard( _mtx );
   _queue.push( InputData( bytes, length, width, height, timestamp ) );
 }
 
 void InputThread::run( std::stop_token stoken ) {
-  _mtx.lock();
   while( !stoken.stop_requested() || !_queue.empty() ) {
-    _mtx.unlock();
-    _mtx.lock();
     if( !_queue.empty() ) {
-      _mtx.unlock();
       _mtx.lock();
       InputData data = _queue.front();
       _queue.pop();
@@ -56,12 +52,8 @@ void InputThread::run( std::stop_token stoken ) {
       } else {
         process_raw_bytes( data.bytes, data.width, data.height, data.timestamp );
       }
-      _mtx.lock();
     }
-    _mtx.unlock();
-    _mtx.lock();
   }
-  _mtx.unlock();
 
   if( _out_wrapper ) {
     delete _out_wrapper;

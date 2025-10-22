@@ -84,7 +84,7 @@ bool StartNewSequence( int32_t width, int32_t height ) {
 
 bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
   if( ::GS::input_threads.back() ) {
-    ::GS::input_threads.back()->recieve_bytes( bytes, length );
+    ::GS::input_threads.back()->receive_bytes( bytes, length );
     return true;
   }
   return false;
@@ -92,7 +92,7 @@ bool SendPngBytes( uint8_t const* bytes, int32_t length ) {
 
 bool SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp ) {
   if( ::GS::input_threads.back() ) {
-    ::GS::input_threads.back()->recieve_bytes( bytes, length, width, height, timestamp );
+    ::GS::input_threads.back()->receive_bytes( bytes, length, width, height, timestamp );
     return true;
   }
   return false;

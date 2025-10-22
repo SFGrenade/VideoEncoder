@@ -81,8 +81,8 @@ class InputThread {
 
   void end_input_thread();
 
-  void recieve_bytes( uint8_t const* bytes, int32_t length );
-  void recieve_bytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
+  void receive_bytes( uint8_t const* bytes, int32_t length );
+  void receive_bytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
 
   private:
   void run( std::stop_token stoken );
