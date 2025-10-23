@@ -45,6 +45,7 @@ target( "VideoEncoderNative" )
         -- maybe some platform-specific stuff
     elseif is_plat( "macosx" ) then
         -- maybe some platform-specific stuff
+        add_cxflags( "-fexperimental-library" )
     elseif is_plat( "windows" ) then
         -- maybe some platform-specific stuff
     else
