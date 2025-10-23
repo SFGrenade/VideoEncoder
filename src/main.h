@@ -85,15 +85,16 @@ class InputThread {
   void receive_bytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
 
   private:
-  void run( std::stop_token stoken );
+  void run();
   void process_png_bytes( std::vector< uint8_t > );
   void process_raw_bytes( std::vector< uint8_t >, int width, int height, double timestamp );
 
   private:
   OutputSequenceWrapper* _out_wrapper;
   std::queue< InputData > _queue;
-  std::jthread _thread;
+  std::thread _thread;
   std::mutex _mtx;
+  bool should_stop = false;
 };
 
 class GS {

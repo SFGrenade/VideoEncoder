@@ -1,9 +1,10 @@
+#include "main.h"
+
 #include <mutex>
 #include <thread>
 
 #include "_ffmpeg.h"
 #include "common.h"
-#include "main.h"
 
 InputData::InputData( uint8_t const* bytes, int32_t length ) : bytes( bytes, bytes + length ), width( 0 ), height( 0 ), timestamp( 0 ), is_raw( false ) {}
 
@@ -11,12 +12,12 @@ InputData::InputData( uint8_t const* bytes, int32_t length, int32_t width, int32
     : bytes( bytes, bytes + length ), width( width ), height( height ), timestamp( timestamp ), is_raw( true ) {}
 
 InputThread::InputThread( OutputSequenceWrapper* out_wrapper ) : _out_wrapper( out_wrapper ) {
-  auto runable = [this]( std::stop_token stoken ) -> void { this->run( stoken ); };
-  _thread = std::jthread( runable );
+  auto runable = [this]() -> void { this->run(); };
+  _thread = std::thread( runable );
 }
 
 InputThread::~InputThread() {
-  _thread.request_stop();
+  end_input_thread();
   _thread.join();
 
   if( _out_wrapper ) {
@@ -26,7 +27,7 @@ InputThread::~InputThread() {
 }
 
 void InputThread::end_input_thread() {
-  _thread.request_stop();
+  should_stop = true;
 }
 
 void InputThread::receive_bytes( uint8_t const* bytes, int32_t length ) {
@@ -39,8 +40,8 @@ void InputThread::receive_bytes( uint8_t const* bytes, int32_t length, int32_t w
   _queue.push( InputData( bytes, length, width, height, timestamp ) );
 }
 
-void InputThread::run( std::stop_token stoken ) {
-  while( !stoken.stop_requested() || !_queue.empty() ) {
+void InputThread::run() {
+  while( !should_stop || !_queue.empty() ) {
     if( !_queue.empty() ) {
       _mtx.lock();
       InputData data = _queue.front();
