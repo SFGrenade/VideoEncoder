@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include <algorithm>
+#include <chrono>
 #include <filesystem>
 
 #include "_ffmpeg.h"
@@ -53,7 +55,7 @@ bool Deinit() {
 
   while( !::GS::input_threads.empty() ) {
     std::shared_ptr< InputThread > thread = ::GS::input_threads.front();
-    ::GS::input_threads.pop();
+    ::GS::input_threads.pop_front();
     if( thread ) {
       thread.reset();
     }
@@ -63,10 +65,16 @@ bool Deinit() {
   return true;
 }
 
+std::string getISOCurrentTimestamp() {
+  return fmt::format( "{:%FT%TZ}", std::chrono::system_clock::now() );
+}
+
 bool StartNewSequence( int32_t width, int32_t height ) {
   printInFile( fmt::format( "{:s}( width={:d}, height={:d} )", __FUNCTION__, width, height ) );
   // todo: fixme: change how the name is generated
-  std::filesystem::path output_filename = ::GS::mod_dir / fmt::format( "{:d}.{:s}", ::GS::sequence_index, ::GS::file_extension );
+  std::string filename = fmt::format( "Recording_{:d}_{:s}.{:s}", ::GS::sequence_index, getISOCurrentTimestamp(), ::GS::file_extension );
+  std::replace( filename.begin(), filename.end(), ':', '-' );
+  std::filesystem::path output_filename = ::GS::mod_dir / filename;
   ::GS::sequence_index++;
 
   printInFile( fmt::format( "Opening new sequence: {:s}", output_filename.string() ) );
@@ -76,7 +84,7 @@ bool StartNewSequence( int32_t width, int32_t height ) {
   }
 
   OutputSequenceWrapper* out_wrapper = new OutputSequenceWrapper( AVCodecID::AV_CODEC_ID_VP8, width, height, output_filename );
-  ::GS::input_threads.emplace( new InputThread( out_wrapper ) );
+  ::GS::input_threads.emplace_back( new InputThread( out_wrapper ) );
 
   printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
@@ -107,4 +115,12 @@ bool StopSequence() {
 
   printInFile( fmt::format( "{:s}:{:d}~", __FUNCTION__, __LINE__ ) );
   return true;
+}
+
+uint64_t GetSizeOfAllQueues() {
+  uint64_t ret = 0;
+  for( auto const& item : ::GS::input_threads ) {
+    ret += item->get_queue_size();
+  }
+  return ret;
 }

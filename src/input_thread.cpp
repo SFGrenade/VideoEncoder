@@ -40,6 +40,10 @@ void InputThread::receive_bytes( uint8_t const* bytes, int32_t length, int32_t w
   _queue.push( InputData( bytes, length, width, height, timestamp ) );
 }
 
+uint64_t InputThread::get_queue_size() const {
+  return _queue.size();
+}
+
 void InputThread::run() {
   while( !should_stop || !_queue.empty() ) {
     if( !_queue.empty() ) {

@@ -5,6 +5,7 @@
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -84,6 +85,8 @@ class InputThread {
   void receive_bytes( uint8_t const* bytes, int32_t length );
   void receive_bytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
 
+  uint64_t get_queue_size() const;
+
   private:
   void run();
   void process_png_bytes( std::vector< uint8_t > );
@@ -105,7 +108,7 @@ class GS {
   static std::string file_extension;
   static std::map< std::string, std::string > codec_options;
   static std::map< std::string, std::string > media_options;
-  static std::queue< std::shared_ptr< InputThread > > input_threads;
+  static std::list< std::shared_ptr< InputThread > > input_threads;
 };
 
 extern "C" {
@@ -118,6 +121,7 @@ EXPORT bool CDECL StartNewSequence( int32_t width, int32_t height );
 EXPORT bool CDECL SendPngBytes( uint8_t const* bytes, int32_t length );
 EXPORT bool CDECL SendRawBytes( uint8_t const* bytes, int32_t length, int width, int height, double timestamp );
 EXPORT bool CDECL StopSequence();
+EXPORT uint64_t CDECL GetSizeOfAllQueues();
 }
 
 #endif  // VIDEOENCODERNATIVE_MAIN_H_
