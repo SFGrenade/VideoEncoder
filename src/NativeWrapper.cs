@@ -252,4 +252,31 @@ public static class NativeWrapper
                 return false;
         };
     }
+
+    [DllImport("VideoEncoderNative_Linux", EntryPoint = "GetSizeOfAllQueues", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U8)]
+    private static extern ulong Native_Linux_GetSizeOfAllQueues();
+    private static ulong Linux_GetSizeOfAllQueues_Wrap() => Native_Linux_GetSizeOfAllQueues(); 
+    [DllImport("VideoEncoderNative_MacOS", EntryPoint = "GetSizeOfAllQueues", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U8)]
+    private static extern ulong Native_MacOS_GetSizeOfAllQueues();
+    private static ulong MacOS_GetSizeOfAllQueues_Wrap() => Native_MacOS_GetSizeOfAllQueues();
+    [DllImport("VideoEncoderNative_Windows", EntryPoint = "GetSizeOfAllQueues", ExactSpelling = true, CharSet = CharSet.Ansi, PreserveSig = true, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U8)]
+    private static extern ulong Native_Windows_GetSizeOfAllQueues();
+    private static ulong Windows_GetSizeOfAllQueues_Wrap() => Native_Windows_GetSizeOfAllQueues();
+    internal static ulong GetSizeOfAllQueues()
+    {
+        switch (SystemInfo.operatingSystemFamily)
+        {
+            case OperatingSystemFamily.Linux:
+                return Linux_GetSizeOfAllQueues_Wrap();
+            case OperatingSystemFamily.MacOSX:
+                return MacOS_GetSizeOfAllQueues_Wrap();
+            case OperatingSystemFamily.Windows:
+                return Windows_GetSizeOfAllQueues_Wrap();
+            default:
+                return 0;
+        };
+    }
 }

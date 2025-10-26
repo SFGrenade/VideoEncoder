@@ -9,19 +9,32 @@ namespace VideoEncoder;
 
 public class ScreenshotMb : MonoBehaviour
 {
+    public static ScreenshotMb Instance = null;
+
     public string dir;
     public Camera camera;
 
     private bool _setupDone = false;
     private bool _shouldTakeScreenshots = false;
     private bool _doTakeScreenshots = false;
-    private bool _screenShotTimingNow = false;
+    private int _screenShotTimingNow = 0;
     private double _startOfSequence = 0.0;
+
+    public bool IsRecording() => _doTakeScreenshots;
+
+    [UsedImplicitly]
+    private void Start()
+    {
+        Instance = this;
+    }
 
     [UsedImplicitly]
     private void FixedUpdate()
     {
-        _screenShotTimingNow = true;
+        if (VideoEncoder.GlobalSettings.CapRecordingToFixedUpdate)
+        {
+            _screenShotTimingNow++;
+        }
     }
 
     [UsedImplicitly]
@@ -38,6 +51,11 @@ public class ScreenshotMb : MonoBehaviour
                 // toggle recording once setup is done, which is practically at the start and activating the recording
                 ToggleRecording();
             }
+        }
+
+        if (!VideoEncoder.GlobalSettings.CapRecordingToFixedUpdate)
+        {
+            _screenShotTimingNow++;
         }
 
         if (HeroController.instance != null)
@@ -72,8 +90,8 @@ public class ScreenshotMb : MonoBehaviour
         if (!_setupDone)
             return;
 
-        // this is true when _doTakeScreenshots is true and then either CapRecordingToFixedUpdate is false or it also needs _screenShotTimingNow to be true
-        if (_doTakeScreenshots && ((!VideoEncoder.GlobalSettings.CapRecordingToFixedUpdate) || _screenShotTimingNow))
+        // this is true when _doTakeScreenshots is true and then _screenShotTimingNow is the same as the fps denumerator
+        if (_doTakeScreenshots && (_screenShotTimingNow >= VideoEncoder.GlobalSettings.RenderFpsDenumerator))
         {
             if (inFlight < MaxInFlight)
             {
@@ -91,7 +109,7 @@ public class ScreenshotMb : MonoBehaviour
                     }
                 });
                 inFlight++;
-                _screenShotTimingNow = false;
+                _screenShotTimingNow = 0;
             }
         }
 

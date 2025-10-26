@@ -69,17 +69,22 @@ public class VideoEncoder : Mod, IGlobalSettings<GlobalSettings>
     private void CreateCameraObject()
     {
         customCameraObj = new GameObject("TEST THING; DON'T REMOVE");
+        customCameraObj.SetActive(false);
         UObject.DontDestroyOnLoad(customCameraObj);
+
+        QueueDisplay queueDisplay = customCameraObj.GetOrAddComponent<QueueDisplay>();
 
         Camera screenshotCamera = customCameraObj.GetOrAddComponent<Camera>();
         screenshotCamera.CopyFrom(GameCameras.instance.mainCamera);
 
-        screenshotCamera.targetTexture = new RenderTexture(Screen.width, Screen.height, 32, RenderTextureFormat.ARGB32);
+        screenshotCamera.targetTexture = new RenderTexture((int)(Screen.width * GlobalSettings.RenderResolutionScale), (int)(Screen.height * GlobalSettings.RenderResolutionScale), 32, RenderTextureFormat.ARGB32);
         RenderTexture.active = screenshotCamera.targetTexture;
 
         ScreenshotMb screenshotter = customCameraObj.GetOrAddComponent<ScreenshotMb>();
         screenshotter.camera = screenshotCamera;
         screenshotter.dir = _dir;
+
+        customCameraObj.SetActive(true);
     }
 
     internal static void DebugLog(string message)
