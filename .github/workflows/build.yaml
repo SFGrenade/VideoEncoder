@@ -15,7 +15,7 @@ jobs:
       matrix:
         runner:
           - { name: linux, os: ubuntu-latest, arch: x86_64 }
-          - { name: macos, os: macos-13, arch: x86_64 }
+          - { name: macos, os: macos-latest-large, arch: x86_64 }
           - { name: windows, os: windows-latest, arch: x64 }
         kind: [shared]
         mode: [release]
@@ -44,17 +44,17 @@ jobs:
         shell: bash
 
       - name: Set xmake env
-        run: echo "XMAKE_GLOBALDIR=${{ runner.workspace }}/xmake-global" >> $GITHUB_ENV
+        run: echo "XMAKE_GLOBALDIR=${{ github.workspace }}/xmake-global" >> $GITHUB_ENV
         shell: bash
 
       - name: Checkout C++
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: C++
           path: Cpp
 
       - name: Setup xmake
-        uses: xmake-io/github-action-setup-xmake@v1.2.2
+        uses: xmake-io/github-action-setup-xmake@v1.2.5
         with:
           #xmake-version: branch@dev
           xmake-version: latest
@@ -99,7 +99,7 @@ jobs:
         working-directory: Cpp
 
       - name: Prepare Cpp artifacts for release
-        uses: christopherhx/gitea-upload-artifact@v4
+        uses: christopherhx/gitea-upload-artifact@v7
         with:
           name: Cpp-${{ matrix.runner.name }}
           path: Cpp/_dest/*
@@ -120,12 +120,12 @@ jobs:
         shell: bash
 
       - name: Download Artifacts
-        uses: christopherhx/gitea-download-artifact@v4
+        uses: christopherhx/gitea-download-artifact@v8
         with:
           path: artifacts
 
       - name: Checkout Cs
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: C#
           path: Cs
@@ -147,7 +147,7 @@ jobs:
         working-directory: Cs
 
       - name: Prepare Cs artifacts for release
-        uses: christopherhx/gitea-upload-artifact@v4
+        uses: christopherhx/gitea-upload-artifact@v7
         with:
           name: Publish-Cs
           path: Cs/bin/Publish
@@ -161,7 +161,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: christopherhx/gitea-download-artifact@v4
+        uses: christopherhx/gitea-download-artifact@v8
         with:
           path: artifacts
 
@@ -175,7 +175,7 @@ jobs:
         shell: bash
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: false
           generate_release_notes: true
