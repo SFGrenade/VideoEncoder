@@ -15,7 +15,7 @@ jobs:
       matrix:
         runner:
           - { name: linux, os: ubuntu-latest, arch: x86_64 }
-          - { name: macos, os: macos-latest-large, arch: x86_64 }
+          - { name: macos, os: macos-26-intel, arch: x86_64 }
           - { name: windows, os: windows-latest, arch: x64 }
         kind: [shared]
         mode: [release]
